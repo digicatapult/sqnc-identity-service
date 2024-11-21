@@ -4,5 +4,5 @@
   "esm": true,
   "extension": "ts",
   "file": ["test/init.ts"],
-  "node-option": ["import=@digicatapult/tsimp/import"]
+  "node-option": ["import=@swc-node/register/esm-register"]
 }

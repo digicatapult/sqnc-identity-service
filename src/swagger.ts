@@ -15,11 +15,11 @@ export default async function loadApiSpec(env: Env): Promise<unknown> {
   const API_SWAGGER_HEADING = env.get('API_SWAGGER_HEADING')
   const tokenUrl = `${env.get('IDP_PUBLIC_URL_PREFIX')}${env.get('IDP_TOKEN_PATH')}`
 
-  const swaggerBuffer = await fs.readFile(path.join(__dirname, './swagger.json'))
+  const swaggerBuffer = await fs.readFile(path.join(__dirname, '..', 'build', 'swagger.json'))
   const swaggerJson = JSON.parse(swaggerBuffer.toString('utf8'))
   swaggerJson.info.title += `:${API_SWAGGER_HEADING}`
-  swaggerJson.components.securitySchemes.oauth2.flows.clientCredentials.tokenUrl = tokenUrl
-  swaggerJson.components.securitySchemes.oauth2.flows.clientCredentials.refreshUrl = tokenUrl
+  swaggerJson.components.securitySchemes.oauth2.flows.authorizationCode.tokenUrl = tokenUrl
+  swaggerJson.components.securitySchemes.oauth2.flows.authorizationCode.refreshUrl = tokenUrl
 
   return swaggerJson
 }

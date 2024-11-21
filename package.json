@@ -1,21 +1,21 @@
 {
   "name": "@digicatapult/sqnc-identity-service",
-  "version": "2.0.137",
+  "version": "2.0.138",
   "description": "Identity Service for SQNC",
   "type": "module",
   "main": "src/index.ts",
   "scripts": {
-    "build": "npm run tsoa:build && tsc",
-    "test": "NODE_ENV=test mocha --config ./test/mocharc.json ./test/**/*.test.ts",
+    "build": "npm run tsoa:build && swc ./src -d ./build --strip-leading-paths --copy-files",
+    "test": "SWCRC=true NODE_ENV=dev node --trace-warnings --enable-source-maps ./node_modules/.bin/mocha --config ./test/mocharc.json ./test/**/*.test.ts",
     "lint": "prettier -c ./src ./test ./migrations",
     "lint:fix": "npm run lint -- -w",
     "depcheck": "depcheck",
     "start": "NODE_ENV=production node build/index.js",
     "tsoa:build": "tsoa spec-and-routes",
-    "tsoa:watch": "node --watch-path=./src ./node_modules/.bin/tsoa -- spec-and-routes",
-    "dev": "NODE_ENV=dev node --import=@digicatapult/tsimp/import --watch src/index.ts | pino-colada",
-    "db:migrate": "knex migrate:latest",
-    "coverage": "NODE_ENV=test c8 mocha --config ./test/mocharc.json ./test/**/*.test.ts"
+    "tsoa:watch": "node --watch-path=./src ./node_modules/.bin/tsoa spec-and-routes",
+    "dev": "concurrently \"npm run tsoa:watch\" \"SWCRC=true NODE_ENV=dev node --trace-warnings --import @swc-node/register/esm-register --enable-source-maps --watch-path=./src --watch-path=./build/swagger.json ./src/index.ts | pino-colada\"",
+    "db:migrate": "node --import @swc-node/register/esm-register ./node_modules/.bin/knex migrate:latest",
+    "coverage": "NODE_ENV=test node --import @swc-node/register/esm-register ./node_modules/.bin/c8 mocha --config ./test/mocharc.json ./test/**/*.test.ts"
   },
   "repository": {
     "type": "git",
@@ -36,7 +36,7 @@
   "homepage": "https://github.com/digicatapult/sqnc-identity-service#readme",
   "dependencies": {
     "@digicatapult/tsoa-oauth-express": "^0.1.69",
-    "@polkadot/api": "^14.2.3",
+    "@polkadot/api": "^14.3.1",
     "@tsoa/runtime": "^6.5.1",
     "body-parser": "^2.0.2",
     "compression": "^1.7.5",
@@ -56,6 +56,9 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@swc-node/register": "^1.10.9",
+    "@swc/cli": "^0.5.1",
+    "@swc/core": "^1.9.2",
     "@types/chai": "^5.0.1",
     "@types/compression": "^1.7.5",
     "@types/cors": "^2.8.17",
@@ -65,6 +68,7 @@
     "@types/swagger-ui-express": "^4.1.7",
     "c8": "^10.1.2",
     "chai": "^5.1.2",
+    "concurrently": "^9.1.0",
     "depcheck": "^1.4.7",
     "jsonwebtoken": "^9.0.2",
     "mocha": "^10.8.2",
@@ -72,7 +76,6 @@
     "prettier": "^3.3.3",
     "prettier-plugin-organize-imports": "^4.1.0",
     "supertest": "^7.0.0",
-    "@digicatapult/tsimp": "^2.0.12",
     "typescript": "^5.6.3"
   }
 }

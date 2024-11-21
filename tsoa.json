@@ -1,22 +1,20 @@
 {
   "entryFile": "src/index.ts",
   "noImplicitAdditionalProperties": "throw-on-extras",
-  "controllerPathGlobs": [
-    "src/controllers/**/*.ts"
-  ],
+  "controllerPathGlobs": ["src/controllers/**/*.ts"],
   "multerOpts": {
     "limits": {
       "fileSize": 104857600
     }
   },
   "spec": {
-    "outputDirectory": "src",
+    "outputDirectory": "build",
     "specVersion": 3,
     "securityDefinitions": {
       "oauth2": {
         "type": "oauth2",
         "flows": {
-          "clientCredentials": {
+          "authorizationCode": {
             "scopes": []
           }
         }
@@ -26,7 +24,8 @@
   "routes": {
     "esm": true,
     "routesDir": "src",
+    "iocModule": "src/ioc",
     "authenticationModule": "./src/authentication.ts",
-    "iocModule": "src/ioc"
+    "noWriteIfUnchanged": true
   }
 }

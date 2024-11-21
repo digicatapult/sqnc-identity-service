@@ -1,1 +1,7 @@
-ignores: ["pg", "prettier-plugin-organize-imports", "@digicatapult/tsimp", "reflect-metadata"]
+ignores: [
+  "pg",
+  "prettier-plugin-organize-imports",
+  "@swc-node/register",
+  "concurrently",
+  "reflect-metadata"
+]
