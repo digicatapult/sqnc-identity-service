@@ -36,6 +36,10 @@ const envConfig = {
   IDP_JWKS_PATH: envalid.str({
     default: '/certs',
   }),
+
+  IDP_AUTH_PATH: envalid.str({
+    default: '/auth',
+  }),
 }
 
 export type ENV_CONFIG = typeof envConfig

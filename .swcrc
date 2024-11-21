@@ -6,13 +6,13 @@
       "syntax": "typescript",
       "tsx": false,
       "decorators": true,
-      "dynamicImport": true,
+      "dynamicImport": true
     },
     "transform": {
       "legacyDecorator": true,
       "useDefineForClassFields": true
     },
-    "target": "es2022",
+    "target": "es2022"
   },
   "exclude": [
     "/__test__/"

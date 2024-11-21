@@ -6,7 +6,7 @@
   "main": "src/index.ts",
   "scripts": {
     "build": "npm run tsoa:build && swc ./src -d ./build --strip-leading-paths --copy-files",
-    "test": "NODE_ENV=test ./node_modules/.bin/mocha --config ./test/mocharc.json ./test/**/*.test.ts",
+    "test": "SWCRC=true NODE_ENV=dev node --trace-warnings --enable-source-maps ./node_modules/.bin/mocha --config ./test/mocharc.json ./test/**/*.test.ts",
     "lint": "prettier -c ./src ./test ./migrations",
     "lint:fix": "npm run lint -- -w",
     "depcheck": "depcheck",
