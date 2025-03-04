@@ -1,6 +1,6 @@
 {
   "name": "@digicatapult/sqnc-identity-service",
-  "version": "3.0.26",
+  "version": "3.0.27",
   "description": "Identity Service for SQNC",
   "type": "module",
   "main": "src/index.ts",
@@ -16,6 +16,7 @@
     "tsoa:build": "tsoa spec-and-routes",
     "tsoa:watch": "node --watch-path=./src ./node_modules/.bin/tsoa -- spec-and-routes",
     "dev": "NODE_ENV=dev node --import=./import/index.mjs --watch src/index.ts | pino-colada",
+    "dev:telemetry": "NODE_ENV=dev NODE_OPTIONS='--require @opentelemetry/auto-instrumentations-node/register' GRPC_INSECURE=true OTEL_SERVICE_NAME='sqnc-identity-service' OTEL_EXPORTER_OTLP_TRACES_PROTOCOL='grpc' OTEL_EXPORTER_OTLP_TRACES_ENDPOINT='http://localhost:4317' OTEL_TRACES_EXPORTER='otlp' OTEL_PROPAGATORS='tracecontext,baggage' node --import=./import/index.mjs --watch src/index.ts | pino-colada",
     "db:migrate": "knex migrate:latest",
     "coverage": "NODE_ENV=test c8 mocha --config ./test/mocharc.json ./test/**/*.test.ts"
   },
@@ -38,6 +39,8 @@
   "homepage": "https://github.com/digicatapult/sqnc-identity-service#readme",
   "dependencies": {
     "@digicatapult/tsoa-oauth-express": "^0.1.101",
+    "@grpc/grpc-js": "^1.12.6",
+    "@opentelemetry/auto-instrumentations-node": "^0.56.1",
     "@polkadot/api": "^15.7.1",
     "@tsoa/runtime": "^6.6.0",
     "body-parser": "^2.1.0",
