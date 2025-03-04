@@ -70,6 +70,23 @@ To run in a development environment it may be helpful to instead run with
 npm run dev
 ```
 
+## Running with tracing
+
+If you would like to run in a dev mode with tracing enabled, please run:
+
+```sh
+# start dependencies with
+docker-compose -f ./docker-compose.yml -f ./docker-compose.telemetry.yml up -d
+# install packages
+npm i
+# run migrations
+npm run db:migrate
+# start service in dev mode with telemetry collection enabled
+npm run dev:telemetry
+```
+
+Then navigate to Jaeger UI to view traces [http://localhost:16686/](http://localhost:16686/).
+
 ## API specification
 
 The API is authenticated using the Oauth2 client-credentials flow. When using the docker-compose workflow for development a keycloak instance is deployed with a preconfigured client `sqnc-identity-service` with secret `secret`. These can be entered on the swagger ui at [http://localhost:3000/swagger](http://localhost:3000/swagger) for experimenting with the API.
@@ -79,12 +96,7 @@ The API is authenticated using the Oauth2 client-credentials flow. When using th
 The `address` parameter identifies the user running this process, and the `alias` representing a more friendly name version of this. The default value of the latter is null, and is optionally set.
 
 ```json
-[
-  {
-    "address": "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY",
-    "alias": "ALICE"
-  }
-]
+[{ "address": "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY", "alias": "ALICE" }]
 ```
 
 ### PUT /members/:address
@@ -92,8 +104,5 @@ The `address` parameter identifies the user running this process, and the `alias
 The `address` parameter identifies the user running this process, and the `alias` representing a more friendly name version of this. The default value of the latter is null, and is optionally set.
 
 ```json
-{
-  "address": "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY",
-  "alias": "ALICE_UPDATED"
-}
+{ "address": "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY", "alias": "ALICE_UPDATED" }
 ```
