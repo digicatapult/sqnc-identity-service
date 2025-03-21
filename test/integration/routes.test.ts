@@ -21,12 +21,14 @@ describe('routes', function () {
   this.timeout(3000)
 
   let app: express.Express
-  let token: string
+  let userToken: string
+  let internalToken: string
 
   before(async function () {
     await cleanup()
     app = await createHttpServer()
-    token = await getToken()
+    userToken = await getToken('oauth2')
+    internalToken = await getToken('internal')
   })
 
   afterEach(async function () {
@@ -46,7 +48,20 @@ describe('routes', function () {
       { address: USER_ALICE_TOKEN, alias: USER_ALICE_TOKEN },
     ]
 
-    const res = await getMembersRoute({ app, token })
+    const res = await getMembersRoute({ app, token: userToken })
+
+    expect(res.status).to.equal(200)
+    expect(res.body).deep.equal(expectedResult)
+  })
+
+  test('return membership members (internal)', async function () {
+    const expectedResult = [
+      { address: USER_BOB_TOKEN, alias: USER_BOB_TOKEN },
+      { address: USER_CHARLIE_TOKEN, alias: USER_CHARLIE_TOKEN },
+      { address: USER_ALICE_TOKEN, alias: USER_ALICE_TOKEN },
+    ]
+
+    const res = await getMembersRoute({ app, token: internalToken })
 
     expect(res.status).to.equal(200)
     expect(res.body).deep.equal(expectedResult)
@@ -59,8 +74,8 @@ describe('routes', function () {
       { address: USER_ALICE_TOKEN, alias: USER_ALICE_TOKEN },
     ]
 
-    await putMemberAliasRoute({ app, token }, USER_CHARLIE_TOKEN, { alias: 'CHARLIE' })
-    const res = await getMembersRoute({ app, token })
+    await putMemberAliasRoute({ app, token: userToken }, USER_CHARLIE_TOKEN, { alias: 'CHARLIE' })
+    const res = await getMembersRoute({ app, token: userToken })
 
     expect(res.status).to.equal(200)
     expect(res.body).deep.equal(expectedResult)
@@ -69,7 +84,16 @@ describe('routes', function () {
   test('update non-existing member alias', async function () {
     const expectedResult = { address: USER_CHARLIE_TOKEN, alias: 'CHARLIE' }
 
-    const res = await putMemberAliasRoute({ app, token }, USER_CHARLIE_TOKEN, { alias: 'CHARLIE' })
+    const res = await putMemberAliasRoute({ app, token: userToken }, USER_CHARLIE_TOKEN, { alias: 'CHARLIE' })
+
+    expect(res.status).to.equal(200)
+    expect(res.body).deep.equal(expectedResult)
+  })
+
+  test('update non-existing member alias (internal)', async function () {
+    const expectedResult = { address: USER_CHARLIE_TOKEN, alias: 'CHARLIE' }
+
+    const res = await putMemberAliasRoute({ app, token: internalToken }, USER_CHARLIE_TOKEN, { alias: 'CHARLIE' })
 
     expect(res.status).to.equal(200)
     expect(res.body).deep.equal(expectedResult)
@@ -84,8 +108,8 @@ describe('routes', function () {
   test('update existing member alias', async function () {
     const expectedResult = { message: 'member alias already exists' }
 
-    await putMemberAliasRoute({ app, token }, USER_CHARLIE_TOKEN, { alias: 'CHARLIE' })
-    const res = await putMemberAliasRoute({ app, token }, USER_CHARLIE_TOKEN, { alias: 'CHARLIE' })
+    await putMemberAliasRoute({ app, token: userToken }, USER_CHARLIE_TOKEN, { alias: 'CHARLIE' })
+    const res = await putMemberAliasRoute({ app, token: userToken }, USER_CHARLIE_TOKEN, { alias: 'CHARLIE' })
 
     expect(res.status).to.equal(409)
     expect(res.body).deep.equal(expectedResult)
@@ -94,8 +118,8 @@ describe('routes', function () {
   test('update existing member alias', async function () {
     const expectedResult = { address: USER_CHARLIE_TOKEN, alias: 'CHARLIE_UPDATE' }
 
-    await putMemberAliasRoute({ app, token }, USER_CHARLIE_TOKEN, { alias: 'CHARLIE' })
-    const res = await putMemberAliasRoute({ app, token }, USER_CHARLIE_TOKEN, { alias: 'CHARLIE_UPDATE' })
+    await putMemberAliasRoute({ app, token: userToken }, USER_CHARLIE_TOKEN, { alias: 'CHARLIE' })
+    const res = await putMemberAliasRoute({ app, token: userToken }, USER_CHARLIE_TOKEN, { alias: 'CHARLIE_UPDATE' })
 
     expect(res.status).to.equal(200)
     expect(res.body).deep.equal(expectedResult)
@@ -104,29 +128,43 @@ describe('routes', function () {
   test('update alternative non-existing member with duplicate alias', async function () {
     const expectedResult = { message: 'member alias already exists' }
 
-    await putMemberAliasRoute({ app, token }, USER_CHARLIE_TOKEN, { alias: 'CHARLIE' })
-    const res = await putMemberAliasRoute({ app, token }, USER_BOB_TOKEN, { alias: 'CHARLIE' })
+    await putMemberAliasRoute({ app, token: userToken }, USER_CHARLIE_TOKEN, { alias: 'CHARLIE' })
+    const res = await putMemberAliasRoute({ app, token: userToken }, USER_BOB_TOKEN, { alias: 'CHARLIE' })
 
     expect(res.status).to.equal(409)
     expect(res.body).deep.equal(expectedResult)
   })
 
   test('get member by alias', async function () {
-    await putMemberAliasRoute({ app, token }, USER_CHARLIE_TOKEN, { alias: 'CHARLIE' })
+    await putMemberAliasRoute({ app, token: userToken }, USER_CHARLIE_TOKEN, { alias: 'CHARLIE' })
 
     const expectedResult = {
       address: USER_CHARLIE_TOKEN,
       alias: 'CHARLIE',
     }
 
-    const res = await getMemberByAliasOrAddressRoute({ app, token }, 'CHARLIE')
+    const res = await getMemberByAliasOrAddressRoute({ app, token: userToken }, 'CHARLIE')
+
+    expect(res.status).to.equal(200)
+    expect(res.body).deep.equal(expectedResult)
+  })
+
+  test('get member by alias (internal)', async function () {
+    await putMemberAliasRoute({ app, token: userToken }, USER_CHARLIE_TOKEN, { alias: 'CHARLIE' })
+
+    const expectedResult = {
+      address: USER_CHARLIE_TOKEN,
+      alias: 'CHARLIE',
+    }
+
+    const res = await getMemberByAliasOrAddressRoute({ app, token: internalToken }, 'CHARLIE')
 
     expect(res.status).to.equal(200)
     expect(res.body).deep.equal(expectedResult)
   })
 
   test('get member by alias with invalid token', async function () {
-    await putMemberAliasRoute({ app, token }, USER_CHARLIE_TOKEN, { alias: 'CHARLIE' })
+    await putMemberAliasRoute({ app, token: userToken }, USER_CHARLIE_TOKEN, { alias: 'CHARLIE' })
 
     const res = await getMemberByAliasOrAddressRoute({ app, token: 'invalid' }, 'CHARLIE')
 
@@ -134,10 +172,10 @@ describe('routes', function () {
   })
 
   test('get member by incorrect alias', async function () {
-    await putMemberAliasRoute({ app, token }, USER_CHARLIE_TOKEN, { alias: 'CHARLIE' })
+    await putMemberAliasRoute({ app, token: userToken }, USER_CHARLIE_TOKEN, { alias: 'CHARLIE' })
     const expectedResult = { message: 'Member does not exist' }
 
-    const res = await getMemberByAliasOrAddressRoute({ app, token }, 'CHARLIE_UPDATE')
+    const res = await getMemberByAliasOrAddressRoute({ app, token: userToken }, 'CHARLIE_UPDATE')
 
     expect(res.status).to.equal(404)
     expect(res.body).deep.equal(expectedResult)
@@ -146,28 +184,28 @@ describe('routes', function () {
   test('get member by invalid alias', async function () {
     const invalidAlias = Array(256).fill('a').join('')
 
-    const res = await getMemberByAliasOrAddressRoute({ app, token }, invalidAlias)
+    const res = await getMemberByAliasOrAddressRoute({ app, token: userToken }, invalidAlias)
 
     expect(res.status).to.equal(422)
     expect(res.body.message).equal('Validation Failed')
   })
 
   test('get member by address', async function () {
-    await putMemberAliasRoute({ app, token }, USER_CHARLIE_TOKEN, { alias: 'CHARLIE' })
+    await putMemberAliasRoute({ app, token: userToken }, USER_CHARLIE_TOKEN, { alias: 'CHARLIE' })
 
     const expectedResult = {
       address: USER_CHARLIE_TOKEN,
       alias: 'CHARLIE',
     }
 
-    const res = await getMemberByAliasOrAddressRoute({ app, token }, USER_CHARLIE_TOKEN)
+    const res = await getMemberByAliasOrAddressRoute({ app, token: userToken }, USER_CHARLIE_TOKEN)
 
     expect(res.status).to.equal(200)
     expect(res.body).deep.equal(expectedResult)
   })
 
   test('get self address or return default', async function () {
-    const { status, body } = await getSelfAddress({ app, token })
+    const { status, body } = await getSelfAddress({ app, token: userToken })
     expect(status).to.equal(200)
     expect(body).to.deep.equal({
       address: USER_BOB_TOKEN,
@@ -181,8 +219,18 @@ describe('routes', function () {
   })
 
   test('get self address with alias', async function () {
-    await putMemberAliasRoute({ app, token }, USER_BOB_TOKEN, { alias: 'TEST' })
-    const { status, body } = await getSelfAddress({ app, token })
+    await putMemberAliasRoute({ app, token: userToken }, USER_BOB_TOKEN, { alias: 'TEST' })
+    const { status, body } = await getSelfAddress({ app, token: userToken })
+    expect(status).to.equal(200)
+    expect(body).to.deep.equal({
+      address: USER_BOB_TOKEN,
+      alias: 'TEST',
+    })
+  })
+
+  test('get self address with alias (internal)', async function () {
+    await putMemberAliasRoute({ app, token: userToken }, USER_BOB_TOKEN, { alias: 'TEST' })
+    const { status, body } = await getSelfAddress({ app, token: internalToken })
     expect(status).to.equal(200)
     expect(body).to.deep.equal({
       address: USER_BOB_TOKEN,

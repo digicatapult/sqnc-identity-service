@@ -24,17 +24,17 @@ const envConfig = {
   API_SWAGGER_TITLE: envalid.str({ default: 'IdentityAPI' }),
   API_SWAGGER_HEADING: envalid.str({ default: 'IdentityService' }),
   IDP_CLIENT_ID: envalid.str({ devDefault: 'sqnc-identity-service' }),
-  IDP_PUBLIC_URL_PREFIX: envalid.url({
-    devDefault: 'http://localhost:3080/realms/sequence/protocol/openid-connect',
+  IDP_PUBLIC_ORIGIN: envalid.url({
+    devDefault: 'http://localhost:3080',
   }),
-  IDP_INTERNAL_URL_PREFIX: envalid.url({
-    devDefault: 'http://localhost:3080/realms/sequence/protocol/openid-connect',
+  IDP_INTERNAL_ORIGIN: envalid.url({
+    devDefault: 'http://localhost:3080',
   }),
-  IDP_TOKEN_PATH: envalid.str({
-    default: '/token',
+  IDP_OAUTH2_REALM: envalid.str({
+    devDefault: 'sequence',
   }),
-  IDP_JWKS_PATH: envalid.str({
-    default: '/certs',
+  IDP_INTERNAL_REALM: envalid.str({
+    devDefault: 'internal',
   }),
 }
 

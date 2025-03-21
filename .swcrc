@@ -16,7 +16,10 @@
     "target": "es2022"
   },
   "exclude": [
-    "/__test__/"
+    "**/__test__/**",
+    "**/__tests__/**",
+    "test/**",
+    "tests/**"
   ],
   "sourceMaps": true,
   "isModule": true,

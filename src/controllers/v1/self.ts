@@ -10,6 +10,7 @@ import { Member } from '../../responses.js'
 
 @Route('/v1/self')
 @Security('oauth2')
+@Security('internal')
 @injectable()
 export class SelfController extends Controller {
   constructor(
