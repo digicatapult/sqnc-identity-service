@@ -14,7 +14,7 @@ describe('health', function () {
 
   before(async function () {
     app = await createHttpServer()
-    token = await getToken()
+    token = await getToken('oauth2')
   })
 
   test('health check', async function () {

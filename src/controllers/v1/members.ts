@@ -12,6 +12,7 @@ export const addrRegex = /^[1-9A-HJ-NP-Za-km-z]{48}$/
 
 @Route('/v1/members')
 @Security('oauth2')
+@Security('internal')
 @injectable()
 export class MembersController extends Controller {
   constructor(

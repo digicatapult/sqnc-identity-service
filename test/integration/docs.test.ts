@@ -13,7 +13,7 @@ describe('api-docs', function () {
 
   before(async function () {
     app = await createHttpServer()
-    token = await getToken()
+    token = await getToken('oauth2')
   })
 
   it('should return 200', async function () {

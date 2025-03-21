@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.14
-FROM node:lts-alpine as builder
+FROM node:lts-alpine AS builder
 
 WORKDIR /sqnc-identity-service
 
@@ -7,14 +7,13 @@ WORKDIR /sqnc-identity-service
 RUN npm install -g npm@10.x.x
 
 COPY package*.json ./
-COPY tsconfig.json ./
 
 RUN npm ci
 COPY . .
 RUN npm run build
 
 # service
-FROM node:lts-alpine as service
+FROM node:lts-alpine AS service
 
 WORKDIR /sqnc-identity-service
 

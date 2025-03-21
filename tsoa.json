@@ -1,19 +1,20 @@
 {
   "entryFile": "src/index.ts",
   "noImplicitAdditionalProperties": "throw-on-extras",
-  "controllerPathGlobs": [
-    "src/controllers/**/*.ts"
-  ],
-  "multerOpts": {
-    "limits": {
-      "fileSize": 104857600
-    }
-  },
+  "controllerPathGlobs": ["src/controllers/**/*.ts"],
   "spec": {
     "outputDirectory": "src",
     "specVersion": 3,
     "securityDefinitions": {
       "oauth2": {
+        "type": "oauth2",
+        "flows": {
+          "clientCredentials": {
+            "scopes": []
+          }
+        }
+      },
+      "internal": {
         "type": "oauth2",
         "flows": {
           "clientCredentials": {
