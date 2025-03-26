@@ -28,27 +28,27 @@ npm run db:migrate
 
 `sqnc-identity-service` is configured primarily using environment variables as follows:
 
-| variable                | required | default                 | description                                                                                                                                           |
-| ----------------------- | -------- | ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| SELF_ADDRESS            | Y        | -                       | Blockchain transacting address for this instance of Sequence                                                                                          |
-| SERVICE_TYPE            | N        | `sqnc-identity-service` | Logging level. Valid values are [`trace`, `debug`, `info`, `warn`, `error`, `fatal`]                                                                  |
-| PORT                    | N        | `3001`                  | The port for the API to listen on                                                                                                                     |
-| API_HOST                | Y        | -                       | The hostname of the `sqnc-node` the API should connect to                                                                                             |
-| API_PORT                | N        | `9944`                  | The port of the `sqnc-node` the API should connect to                                                                                                 |
-| LOG_LEVEL               | N        | `info`                  | Logging level. Valid values are [`trace`, `debug`, `info`, `warn`, `error`, `fatal`]                                                                  |
-| DB_HOST                 | Y        | -                       | Hostname for the db                                                                                                                                   |
-| DB_PORT                 | N        | 5432                    | Port to connect to the db                                                                                                                             |
-| DB_NAME                 | N        | `sqnc`                  | Name of the database to connect to                                                                                                                    |
-| DB_USERNAME             | Y        | -                       | Username to connect to the database with                                                                                                              |
-| DB_PASSWORD             | Y        | -                       | Password to connect to the database with                                                                                                              |
-| API_SWAGGER_BG_COLOR    | N        | `#fafafa`               | CSS \_color\* val for UI bg ( try: [e4f2f3](https://coolors.co/e4f2f3) , [e7f6e6](https://coolors.co/e7f6e6) or [f8dddd](https://coolors.co/f8dddd) ) |
-| API_SWAGGER_TITLE       | N        | `IdentityAPI`           | String used to customise the title of the html page                                                                                                   |
-| API_SWAGGER_HEADING     | N        | `IdentityService`       | String used to customise the H2 heading                                                                                                               |
-| IDP_CLIENT_ID           | Y        | -                       | OAuth2 client-id to use when validating authentication headers                                                                                        |
-| IDP_PUBLIC_URL_PREFIX   | Y        | -                       | URL prefix to apply to access the IDP endpoints from the public internet                                                                              |
-| IDP_INTERNAL_URL_PREFIX | Y        | -                       | URL prefix to apply to access the IDP endpoints from within the Sequence deployment's network                                                         |
-| IDP_TOKEN_PATH          | N        | `/token`                | Path to append to the appropriate prefix to determine the OAuth2 token endpoint                                                                       |
-| IDP_JWKS_PATH           | N        | `/certs`                | Path to append to the appropriate prefix to determine the OAuth2 JWKS endpoint                                                                        |
+| variable             | required | default                 | description                                                                                                                                           |
+| -------------------- | -------- | ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| SELF_ADDRESS         | Y        | -                       | Blockchain transacting address for this instance of Sequence                                                                                          |
+| SERVICE_TYPE         | N        | `sqnc-identity-service` | Logging level. Valid values are [`trace`, `debug`, `info`, `warn`, `error`, `fatal`]                                                                  |
+| PORT                 | N        | `3001`                  | The port for the API to listen on                                                                                                                     |
+| API_HOST             | Y        | -                       | The hostname of the `sqnc-node` the API should connect to                                                                                             |
+| API_PORT             | N        | `9944`                  | The port of the `sqnc-node` the API should connect to                                                                                                 |
+| LOG_LEVEL            | N        | `info`                  | Logging level. Valid values are [`trace`, `debug`, `info`, `warn`, `error`, `fatal`]                                                                  |
+| DB_HOST              | Y        | -                       | Hostname for the db                                                                                                                                   |
+| DB_PORT              | N        | 5432                    | Port to connect to the db                                                                                                                             |
+| DB_NAME              | N        | `sqnc`                  | Name of the database to connect to                                                                                                                    |
+| DB_USERNAME          | Y        | -                       | Username to connect to the database with                                                                                                              |
+| DB_PASSWORD          | Y        | -                       | Password to connect to the database with                                                                                                              |
+| API_SWAGGER_BG_COLOR | N        | `#fafafa`               | CSS \_color\* val for UI bg ( try: [e4f2f3](https://coolors.co/e4f2f3) , [e7f6e6](https://coolors.co/e7f6e6) or [f8dddd](https://coolors.co/f8dddd) ) |
+| API_SWAGGER_TITLE    | N        | `IdentityAPI`           | String used to customise the title of the html page                                                                                                   |
+| API_SWAGGER_HEADING  | N        | `IdentityService`       | String used to customise the H2 heading                                                                                                               |
+| IDP_CLIENT_ID        | Y        | -                       | OAuth2 client-id to use in swagger-ui                                                                                                                 |
+| IDP_PUBLIC_ORIGIN    | Y        | -                       | Origin of IDP from outside the cluster                                                                                                                |
+| IDP_INTERNAL_ORIGIN  | Y        | -                       | Origin of IDP from inside the cluster                                                                                                                 |
+| IDP_OAUTH2_REALM     | Y        | -                       | Realm to use when authenticating external users                                                                                                       |
+| IDP_INTERNAL_REALM   | Y        | -                       | Realm to use when authenticating cluster internal users                                                                                               |
 
 ## Running the API
 
