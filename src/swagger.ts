@@ -19,11 +19,11 @@ export default async function loadApiSpec(env: Env): Promise<unknown> {
   const swaggerJson = JSON.parse(swaggerBuffer.toString('utf8'))
   swaggerJson.info.title += `:${API_SWAGGER_HEADING}`
 
-  const tokenUrlOauth = `${env.get('IDP_PUBLIC_ORIGIN')}/realms/${env.get('IDP_OAUTH2_REALM')}/protocol/openid-connect/token`
+  const tokenUrlOauth = `${env.get('IDP_PUBLIC_ORIGIN')}${env.get('IDP_PATH_PREFIX')}/realms/${env.get('IDP_OAUTH2_REALM')}/protocol/openid-connect/token`
   swaggerJson.components.securitySchemes.oauth2.flows.clientCredentials.tokenUrl = tokenUrlOauth
   swaggerJson.components.securitySchemes.oauth2.flows.clientCredentials.refreshUrl = tokenUrlOauth
 
-  const tokenUrlInternal = `${env.get('IDP_PUBLIC_ORIGIN')}/realms/${env.get('IDP_INTERNAL_REALM')}/protocol/openid-connect/token`
+  const tokenUrlInternal = `${env.get('IDP_PUBLIC_ORIGIN')}${env.get('IDP_PATH_PREFIX')}/realms/${env.get('IDP_INTERNAL_REALM')}/protocol/openid-connect/token`
   swaggerJson.components.securitySchemes.internal.flows.clientCredentials.tokenUrl = tokenUrlInternal
   swaggerJson.components.securitySchemes.internal.flows.clientCredentials.refreshUrl = tokenUrlInternal
 
