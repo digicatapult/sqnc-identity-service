@@ -22,10 +22,10 @@ const makeAuth = (securityName: string, jwksUri: string) =>
 export const expressAuthentication = mergeAcceptAny([
   makeAuth(
     'oauth2',
-    `${env.get('IDP_INTERNAL_ORIGIN')}/realms/${env.get('IDP_OAUTH2_REALM')}/protocol/openid-connect/certs`
+    `${env.get('IDP_INTERNAL_ORIGIN')}${env.get('IDP_PATH_PREFIX')}/realms/${env.get('IDP_OAUTH2_REALM')}/protocol/openid-connect/certs`
   ),
   makeAuth(
     'internal',
-    `${env.get('IDP_INTERNAL_ORIGIN')}/realms/${env.get('IDP_INTERNAL_REALM')}/protocol/openid-connect/certs`
+    `${env.get('IDP_INTERNAL_ORIGIN')}${env.get('IDP_PATH_PREFIX')}/realms/${env.get('IDP_INTERNAL_REALM')}/protocol/openid-connect/certs`
   ),
 ])

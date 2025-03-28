@@ -6,7 +6,7 @@ const env = container.resolve(Env)
 
 export const getToken = async (realm: 'oauth2' | 'internal') => {
   const tokenReq = await fetch(
-    `${env.get('IDP_PUBLIC_ORIGIN')}/realms/${realm === 'oauth2' ? env.get('IDP_OAUTH2_REALM') : env.get('IDP_INTERNAL_REALM')}/protocol/openid-connect/token`,
+    `${env.get('IDP_PUBLIC_ORIGIN')}${env.get('IDP_PATH_PREFIX')}/realms/${realm === 'oauth2' ? env.get('IDP_OAUTH2_REALM') : env.get('IDP_INTERNAL_REALM')}/protocol/openid-connect/token`,
     {
       method: 'POST',
       headers: {
