@@ -43,7 +43,7 @@ describe('routes', function () {
 
   test('return membership members', async function () {
     const expectedResult = [
-      { address: USER_BOB_TOKEN, alias: USER_BOB_TOKEN, role: 'None' },
+      { address: USER_BOB_TOKEN, alias: USER_BOB_TOKEN, role: 'Self' },
       { address: USER_CHARLIE_TOKEN, alias: USER_CHARLIE_TOKEN, role: 'None' },
       { address: USER_ALICE_TOKEN, alias: USER_ALICE_TOKEN, role: 'None' },
     ]
@@ -55,7 +55,7 @@ describe('routes', function () {
 
   test('return membership members (internal)', async function () {
     const expectedResult = [
-      { address: USER_BOB_TOKEN, alias: USER_BOB_TOKEN, role: 'None' },
+      { address: USER_BOB_TOKEN, alias: USER_BOB_TOKEN, role: 'Self' },
       { address: USER_CHARLIE_TOKEN, alias: USER_CHARLIE_TOKEN, role: 'None' },
       { address: USER_ALICE_TOKEN, alias: USER_ALICE_TOKEN, role: 'None' },
     ]
@@ -68,7 +68,7 @@ describe('routes', function () {
 
   test('return membership members with aliases', async function () {
     const expectedResult = [
-      { address: USER_BOB_TOKEN, alias: USER_BOB_TOKEN, role: 'None' },
+      { address: USER_BOB_TOKEN, alias: USER_BOB_TOKEN, role: 'Self' },
       { address: USER_CHARLIE_TOKEN, alias: 'CHARLIE', role: 'None' },
       { address: USER_ALICE_TOKEN, alias: USER_ALICE_TOKEN, role: 'None' },
     ]

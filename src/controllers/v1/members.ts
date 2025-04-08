@@ -31,12 +31,18 @@ export class MembersController extends Controller {
 
     const nodeMembers = await this.node.getMembers()
     const fromDb = await this.db.get('members')
+    const selfAddress = this.env.get('SELF_ADDRESS')
 
-    return nodeMembers.map((address) => ({
-      address,
-      alias: fromDb.find((member) => member.address === address)?.alias || address,
-      role: fromDb.find((member) => member.address === address)?.role || 'None',
-    }))
+    return nodeMembers.map((address) => {
+      const member = fromDb.find((member) => member.address === address)
+      const role = address === selfAddress ? 'Self' : member?.role || 'None'
+
+      return {
+        address,
+        alias: member?.alias || address,
+        role,
+      }
+    })
   }
 
   @SuccessResponse(200)
