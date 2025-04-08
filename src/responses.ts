@@ -20,4 +20,5 @@ export type AddressOrAlias = Address | Alias
 export type Member = {
   address: Address
   alias: Alias
+  role: 'None' | 'Optimiser' | 'Self'
 }

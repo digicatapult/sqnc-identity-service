@@ -6,6 +6,7 @@ export const tablesList = ['members'] as const
 const insertMember = z.object({
   alias: z.string().max(50),
   address: z.string().max(50),
+  role: z.enum(['None', 'Optimiser']).default('None'),
 })
 
 const Zod = {

@@ -26,3 +26,9 @@ export class Conflict extends HttpError {
     super({ code: 409, message })
   }
 }
+
+export class BadRequest extends HttpError {
+  constructor(message: string = 'Bad request') {
+    super({ code: 400, message })
+  }
+}

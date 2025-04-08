@@ -67,13 +67,33 @@ export async function getMemberByAliasOrAddressRoute({ app, token }: context, al
     })
 }
 
-export async function putMemberAliasRoute({ app, token }: context, address: string, { alias }: { alias: string }) {
+export async function putMemberAliasRoute(
+  { app, token }: context,
+  address: string,
+  { alias }: { alias: string },
+  role?: 'None' | 'Optimiser'
+) {
+  if (!role) {
+    return request(app)
+      .put(`/${API_MAJOR_VERSION}/members/${address}`)
+      .set('Accept', 'application/json')
+      .set('Content-Type', 'application/json')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ alias })
+      .then((response) => {
+        return response
+      })
+      .catch((err) => {
+        console.error(`putMemberErr ${err}`)
+        return err
+      })
+  }
   return request(app)
     .put(`/${API_MAJOR_VERSION}/members/${address}`)
     .set('Accept', 'application/json')
     .set('Content-Type', 'application/json')
     .set('Authorization', `Bearer ${token}`)
-    .send({ alias })
+    .send({ alias, role })
     .then((response) => {
       return response
     })
