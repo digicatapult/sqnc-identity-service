@@ -1,4 +1,4 @@
-import { Controller, Path, Put, Route, Security, SuccessResponse } from 'tsoa'
+import { Controller, Get, Path, Put, Route, Security, SuccessResponse } from 'tsoa'
 import { injectable } from 'tsyringe'
 
 import Database from '../../db/index.js'
@@ -11,6 +11,14 @@ import { logger } from '../../logger.js'
 export class RolesController extends Controller {
   constructor(private db: Database) {
     super()
+  }
+
+  @SuccessResponse(200)
+  @Get('/')
+  public async getRoles() {
+    logger.debug({ msg: 'fetching all roles', controller: '/roles' })
+    const roles = await this.db.get('roles')
+    return roles.map((role) => role.role)
   }
 
   @SuccessResponse(200)

@@ -10,7 +10,7 @@ const insertRole = z.object({
 const insertMember = z.object({
   alias: z.string().max(50),
   address: z.string().max(50),
-  role: z.enum(['None', 'Optimiser']).default('None'),
+  role_id: z.string().nullable(),
 })
 
 const Zod = {

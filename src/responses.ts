@@ -14,11 +14,22 @@ export type Alias = string
  * Either an alias of a member or their blockchain address
  */
 export type AddressOrAlias = Address | Alias
+
 /**
- * A member including their blockchain address as well as their local alias
+ * A role for a member
  */
+export type Role = string | undefined
+
+/**
+ * A body for a member
+ */
+export type MemberBody = {
+  alias: Alias
+  role?: Role
+}
+
 export type Member = {
   address: Address
   alias: Alias
-  role: 'None' | 'Optimiser' | 'Self'
+  role: string | undefined
 }

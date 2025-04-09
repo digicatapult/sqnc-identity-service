@@ -1,10 +1,11 @@
-import type { Address, AddressOrAlias, Alias, Member } from '../../responses.js'
+import { type Address, type AddressOrAlias, type Member, type MemberBody } from '../../responses.js'
 
-import { Body, Controller, Get, Path, Put, Response, Route, Security, SuccessResponse } from 'tsoa'
+import { Body, Controller, Get, Patch, Path, Response, Route, Security, SuccessResponse } from 'tsoa'
 import { injectable } from 'tsyringe'
 
 import ChainNode from '../../chainNode.js'
 import Database from '../../db/index.js'
+import { RoleRow } from '../../db/types.js'
 import { Env } from '../../env.js'
 import { BadRequest, Conflict, NotFound } from '../../errors.js'
 import { logger } from '../../logger.js'
@@ -31,11 +32,13 @@ export class MembersController extends Controller {
 
     const nodeMembers = await this.node.getMembers()
     const fromDb = await this.db.get('members')
+    const fromRoles = await this.db.get('roles')
     const selfAddress = this.env.get('SELF_ADDRESS')
 
     return nodeMembers.map((address) => {
       const member = fromDb.find((member) => member.address === address)
-      const role = address === selfAddress ? 'Self' : member?.role || 'None'
+      const roleFromDb = fromRoles.find((role) => role.id === member?.role_id)
+      const role = address === selfAddress ? 'Self' : roleFromDb?.role || undefined
 
       return {
         address,
@@ -50,14 +53,17 @@ export class MembersController extends Controller {
   @Get('/{aliasOrAddress}')
   public async get(@Path('aliasOrAddress') aliasOrAddress: AddressOrAlias): Promise<Member> {
     const filter = aliasOrAddress.match(addrRegex) ? { address: aliasOrAddress } : { alias: aliasOrAddress }
-
+    let role: string | undefined = undefined
     const [fromDb] = await this.db.get('members', filter)
-
+    if (fromDb && fromDb.role_id !== null) {
+      const [fromRoles] = await this.db.get('roles', { id: fromDb.role_id })
+      role = fromRoles?.role
+    }
     if (fromDb) {
       return {
         alias: fromDb.alias,
         address: fromDb.address,
-        role: fromDb.role,
+        role: role,
       }
     }
 
@@ -80,20 +86,25 @@ export class MembersController extends Controller {
     return {
       alias: aliasOrAddress,
       address: aliasOrAddress,
-      role: 'None',
+      role: role,
     }
   }
 
   @SuccessResponse(200)
   @Response<NotFound>(404, 'Not found')
   @Response<Conflict>(409, 'Conflict')
-  @Put('/{address}')
-  public async put(
-    @Path('address') address: Address,
-    @Body() body: { alias: Alias; role?: 'None' | 'Optimiser' }
-  ): Promise<Member> {
+  @Patch('/{address}')
+  public async patch(@Path('address') address: Address, @Body() body: MemberBody): Promise<Member> {
     const { alias } = body
-    const role = body.role ?? 'None'
+    let role: RoleRow | undefined = undefined
+    if (body.role) {
+      const rolesFromDb = await this.db.get('roles')
+      if (!isValidRole(rolesFromDb, body.role)) {
+        throw new BadRequest('Invalid role')
+      }
+      const [roleFromDb] = await this.db.get('roles', { role: body.role })
+      role = roleFromDb
+    }
     const fromDb = await this.db.get('members')
     const fromNode = await this.node.getMembers()
 
@@ -107,20 +118,24 @@ export class MembersController extends Controller {
     if (matchMemberByAlias) {
       throw new Conflict('member alias already exists')
     }
-    if (address === this.env.get('SELF_ADDRESS') && role === 'Optimiser') {
+    if (address === this.env.get('SELF_ADDRESS') && body.role) {
       throw new BadRequest('cannot update role for self')
     }
 
     if (!matchMemberByAddress) {
-      await this.db.insert('members', { address, alias, role })
+      await this.db.insert('members', { address, alias, role_id: role === undefined ? null : role.id })
       return {
         address,
         alias,
-        role,
+        role: role === undefined ? undefined : role.role,
       }
     }
 
-    await this.db.update('members', { address }, { alias, role })
-    return { address, alias, role }
+    await this.db.update('members', { address }, { alias, role_id: role === undefined ? null : role.id })
+    return { address, alias, role: role === undefined ? undefined : role.role }
   }
+}
+
+export function isValidRole(roles: RoleRow[], role: string) {
+  return roles.some((roleRow) => roleRow.role === role)
 }

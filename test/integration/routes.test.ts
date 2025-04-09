@@ -8,8 +8,10 @@ import { getToken } from '../helper/auth.js'
 import {
   getMemberByAliasOrAddressRoute,
   getMembersRoute,
+  getRolesRoute,
   getSelfAddress,
   putMemberAliasRoute,
+  putRoleRoute,
 } from '../helper/routeHelper.js'
 import { cleanup } from '../seeds/members.js'
 
@@ -30,6 +32,10 @@ describe('routes', function () {
     userToken = await getToken('oauth2')
     internalToken = await getToken('internal')
   })
+  beforeEach(async function () {
+    await putRoleRoute({ app, token: userToken }, 'None')
+    await putRoleRoute({ app, token: userToken }, 'Optimiser')
+  })
 
   afterEach(async function () {
     await cleanup()
@@ -44,8 +50,8 @@ describe('routes', function () {
   test('return membership members', async function () {
     const expectedResult = [
       { address: USER_BOB_TOKEN, alias: USER_BOB_TOKEN, role: 'Self' },
-      { address: USER_CHARLIE_TOKEN, alias: USER_CHARLIE_TOKEN, role: 'None' },
-      { address: USER_ALICE_TOKEN, alias: USER_ALICE_TOKEN, role: 'None' },
+      { address: USER_CHARLIE_TOKEN, alias: USER_CHARLIE_TOKEN },
+      { address: USER_ALICE_TOKEN, alias: USER_ALICE_TOKEN },
     ]
 
     const res = await getMembersRoute({ app, token: userToken })
@@ -56,8 +62,8 @@ describe('routes', function () {
   test('return membership members (internal)', async function () {
     const expectedResult = [
       { address: USER_BOB_TOKEN, alias: USER_BOB_TOKEN, role: 'Self' },
-      { address: USER_CHARLIE_TOKEN, alias: USER_CHARLIE_TOKEN, role: 'None' },
-      { address: USER_ALICE_TOKEN, alias: USER_ALICE_TOKEN, role: 'None' },
+      { address: USER_CHARLIE_TOKEN, alias: USER_CHARLIE_TOKEN },
+      { address: USER_ALICE_TOKEN, alias: USER_ALICE_TOKEN },
     ]
 
     const res = await getMembersRoute({ app, token: internalToken })
@@ -70,7 +76,7 @@ describe('routes', function () {
     const expectedResult = [
       { address: USER_BOB_TOKEN, alias: USER_BOB_TOKEN, role: 'Self' },
       { address: USER_CHARLIE_TOKEN, alias: 'CHARLIE', role: 'None' },
-      { address: USER_ALICE_TOKEN, alias: USER_ALICE_TOKEN, role: 'None' },
+      { address: USER_ALICE_TOKEN, alias: USER_ALICE_TOKEN },
     ]
 
     await putMemberAliasRoute({ app, token: userToken }, USER_CHARLIE_TOKEN, { alias: 'CHARLIE' }, 'None')
@@ -119,7 +125,7 @@ describe('routes', function () {
   })
 
   test('update existing member alias', async function () {
-    const expectedResult = { address: USER_CHARLIE_TOKEN, alias: 'CHARLIE_UPDATE', role: 'None' }
+    const expectedResult = { address: USER_CHARLIE_TOKEN, alias: 'CHARLIE_UPDATE' }
 
     await putMemberAliasRoute({ app, token: userToken }, USER_CHARLIE_TOKEN, { alias: 'CHARLIE' })
     const res = await putMemberAliasRoute({ app, token: userToken }, USER_CHARLIE_TOKEN, { alias: 'CHARLIE_UPDATE' })
@@ -177,7 +183,6 @@ describe('routes', function () {
     const expectedResult = {
       address: USER_CHARLIE_TOKEN,
       alias: 'CHARLIE',
-      role: 'None',
     }
 
     const res = await getMemberByAliasOrAddressRoute({ app, token: userToken }, 'CHARLIE')
@@ -187,12 +192,12 @@ describe('routes', function () {
   })
 
   test('get member by alias (internal)', async function () {
-    await putMemberAliasRoute({ app, token: userToken }, USER_CHARLIE_TOKEN, { alias: 'CHARLIE' })
+    await putMemberAliasRoute({ app, token: userToken }, USER_CHARLIE_TOKEN, { alias: 'CHARLIE' }, 'Optimiser')
 
     const expectedResult = {
       address: USER_CHARLIE_TOKEN,
       alias: 'CHARLIE',
-      role: 'None',
+      role: 'Optimiser',
     }
 
     const res = await getMemberByAliasOrAddressRoute({ app, token: internalToken }, 'CHARLIE')
@@ -278,5 +283,29 @@ describe('routes', function () {
       alias: 'TEST',
       role: 'Self',
     })
+  })
+
+  test('get all roles', async function () {
+    await putRoleRoute({ app, token: userToken }, 'TestRole')
+    const res = await getRolesRoute({ app, token: userToken })
+    expect(res.status).to.equal(200)
+    const roles = res.body
+    expect(roles).to.include.members(['Optimiser', 'None', 'TestRole'])
+    expect(roles).to.have.lengthOf(3)
+  })
+
+  test('add role 2x assert it is only added once', async function () {
+    await putRoleRoute({ app, token: userToken }, 'TestRole')
+    await putRoleRoute({ app, token: userToken }, 'TestRole')
+    const res = await getRolesRoute({ app, token: userToken })
+    expect(res.status).to.equal(200)
+    const roles = res.body
+    expect(roles).to.include.members(['Optimiser', 'None', 'TestRole'])
+    expect(roles).to.have.lengthOf(3)
+  })
+
+  test('get all roles with invalid token', async function () {
+    const res = await getRolesRoute({ app, token: 'invalid' })
+    expect(res.status).to.equal(401)
   })
 })

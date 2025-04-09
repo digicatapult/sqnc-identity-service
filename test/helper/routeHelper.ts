@@ -71,11 +71,11 @@ export async function putMemberAliasRoute(
   { app, token }: context,
   address: string,
   { alias }: { alias: string },
-  role?: 'None' | 'Optimiser'
+  role?: string
 ) {
   if (!role) {
     return request(app)
-      .put(`/${API_MAJOR_VERSION}/members/${address}`)
+      .patch(`/${API_MAJOR_VERSION}/members/${address}`)
       .set('Accept', 'application/json')
       .set('Content-Type', 'application/json')
       .set('Authorization', `Bearer ${token}`)
@@ -89,11 +89,11 @@ export async function putMemberAliasRoute(
       })
   }
   return request(app)
-    .put(`/${API_MAJOR_VERSION}/members/${address}`)
+    .patch(`/${API_MAJOR_VERSION}/members/${address}`)
     .set('Accept', 'application/json')
     .set('Content-Type', 'application/json')
     .set('Authorization', `Bearer ${token}`)
-    .send({ alias, role })
+    .send({ alias: alias, role: role })
     .then((response) => {
       return response
     })
@@ -114,6 +114,37 @@ export async function getSelfAddress({ app, token }: context) {
     })
     .catch((err) => {
       console.error(`getSelfAddressError: ${err}`)
+      return err
+    })
+}
+
+export async function putRoleRoute({ app, token }: context, role: string) {
+  return request(app)
+    .put(`/${API_MAJOR_VERSION}/roles/${role}`)
+    .set('Accept', 'application/json')
+    .set('Content-Type', 'application/json')
+    .set('Authorization', `Bearer ${token}`)
+    .then((response) => {
+      return response
+    })
+
+    .catch((err) => {
+      console.error(`putRoleErr ${err}`)
+      return err
+    })
+}
+
+export async function getRolesRoute({ app, token }: context) {
+  return request(app)
+    .get(`/${API_MAJOR_VERSION}/roles`)
+    .set('Accept', 'application/json')
+    .set('Content-Type', 'application/json')
+    .set('Authorization', `Bearer ${token}`)
+    .then((response) => {
+      return response
+    })
+    .catch((err) => {
+      console.error(`getRolesErr ${err}`)
       return err
     })
 }

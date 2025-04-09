@@ -6,7 +6,7 @@ export const up = async (knex) => {
     def.string('role', 50).notNullable().unique()
   })
   await knex.schema.alterTable('members', (def) => {
-    def.uuid('role_id').references('id').inTable('roles').notNullable().onDelete('CASCADE')
+    def.uuid('role_id').references('id').inTable('roles').onDelete('CASCADE').nullable()
   })
 }
 

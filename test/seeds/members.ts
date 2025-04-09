@@ -6,4 +6,5 @@ const db = container.resolve(Database)
 
 export const cleanup = async () => {
   await db.delete('members', {})
+  await db.delete('roles', {})
 }
