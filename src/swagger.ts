@@ -51,6 +51,5 @@ export default async function loadApiSpec(env: Env): Promise<unknown> {
   } catch (error) {
     console.warn('Could not patch roles into Swagger:', error)
   }
-
   return swaggerJson
 }
