@@ -1,11 +1,16 @@
 import { Knex } from 'knex'
 import { z } from 'zod'
 
-export const tablesList = ['members'] as const
+export const tablesList = ['members', 'roles'] as const
+
+const insertRole = z.object({
+  role: z.string().max(50),
+})
 
 const insertMember = z.object({
   alias: z.string().max(50),
   address: z.string().max(50),
+  role_id: z.string().nullable(),
 })
 
 const Zod = {
@@ -17,12 +22,21 @@ const Zod = {
       updated_at: z.date(),
     }),
   },
+  roles: {
+    insert: insertRole,
+    get: insertRole.extend({
+      id: z.string(),
+    }),
+  },
 }
 
-const { members } = Zod
+const { members, roles } = Zod
 
 export type InsertMember = z.infer<typeof members.insert>
 export type MemberRow = z.infer<typeof members.get>
+
+export type InsertRole = z.infer<typeof roles.insert>
+export type RoleRow = z.infer<typeof roles.get>
 
 export type TABLES_TUPLE = typeof tablesList
 export type TABLE = TABLES_TUPLE[number]

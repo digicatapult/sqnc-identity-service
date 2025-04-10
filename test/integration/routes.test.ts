@@ -8,8 +8,10 @@ import { getToken } from '../helper/auth.js'
 import {
   getMemberByAliasOrAddressRoute,
   getMembersRoute,
+  getRolesRoute,
   getSelfAddress,
   putMemberAliasRoute,
+  putRoleRoute,
 } from '../helper/routeHelper.js'
 import { cleanup } from '../seeds/members.js'
 
@@ -30,6 +32,10 @@ describe('routes', function () {
     userToken = await getToken('oauth2')
     internalToken = await getToken('internal')
   })
+  beforeEach(async function () {
+    await putRoleRoute({ app, token: internalToken }, 'None')
+    await putRoleRoute({ app, token: internalToken }, 'Optimiser')
+  })
 
   afterEach(async function () {
     await cleanup()
@@ -43,20 +49,19 @@ describe('routes', function () {
 
   test('return membership members', async function () {
     const expectedResult = [
-      { address: USER_BOB_TOKEN, alias: USER_BOB_TOKEN },
+      { address: USER_BOB_TOKEN, alias: USER_BOB_TOKEN, role: 'Self' },
       { address: USER_CHARLIE_TOKEN, alias: USER_CHARLIE_TOKEN },
       { address: USER_ALICE_TOKEN, alias: USER_ALICE_TOKEN },
     ]
 
     const res = await getMembersRoute({ app, token: userToken })
-
     expect(res.status).to.equal(200)
     expect(res.body).deep.equal(expectedResult)
   })
 
   test('return membership members (internal)', async function () {
     const expectedResult = [
-      { address: USER_BOB_TOKEN, alias: USER_BOB_TOKEN },
+      { address: USER_BOB_TOKEN, alias: USER_BOB_TOKEN, role: 'Self' },
       { address: USER_CHARLIE_TOKEN, alias: USER_CHARLIE_TOKEN },
       { address: USER_ALICE_TOKEN, alias: USER_ALICE_TOKEN },
     ]
@@ -69,31 +74,35 @@ describe('routes', function () {
 
   test('return membership members with aliases', async function () {
     const expectedResult = [
-      { address: USER_BOB_TOKEN, alias: USER_BOB_TOKEN },
-      { address: USER_CHARLIE_TOKEN, alias: 'CHARLIE' },
+      { address: USER_BOB_TOKEN, alias: USER_BOB_TOKEN, role: 'Self' },
+      { address: USER_CHARLIE_TOKEN, alias: 'CHARLIE', role: 'None' },
       { address: USER_ALICE_TOKEN, alias: USER_ALICE_TOKEN },
     ]
 
-    await putMemberAliasRoute({ app, token: userToken }, USER_CHARLIE_TOKEN, { alias: 'CHARLIE' })
+    await putMemberAliasRoute({ app, token: userToken }, USER_CHARLIE_TOKEN, { alias: 'CHARLIE' }, 'None')
     const res = await getMembersRoute({ app, token: userToken })
-
     expect(res.status).to.equal(200)
     expect(res.body).deep.equal(expectedResult)
   })
 
   test('update non-existing member alias', async function () {
-    const expectedResult = { address: USER_CHARLIE_TOKEN, alias: 'CHARLIE' }
+    const expectedResult = { address: USER_CHARLIE_TOKEN, alias: 'CHARLIE', role: 'None' }
 
-    const res = await putMemberAliasRoute({ app, token: userToken }, USER_CHARLIE_TOKEN, { alias: 'CHARLIE' })
+    const res = await putMemberAliasRoute({ app, token: userToken }, USER_CHARLIE_TOKEN, { alias: 'CHARLIE' }, 'None')
 
     expect(res.status).to.equal(200)
     expect(res.body).deep.equal(expectedResult)
   })
 
   test('update non-existing member alias (internal)', async function () {
-    const expectedResult = { address: USER_CHARLIE_TOKEN, alias: 'CHARLIE' }
+    const expectedResult = { address: USER_CHARLIE_TOKEN, alias: 'CHARLIE', role: 'None' }
 
-    const res = await putMemberAliasRoute({ app, token: internalToken }, USER_CHARLIE_TOKEN, { alias: 'CHARLIE' })
+    const res = await putMemberAliasRoute(
+      { app, token: internalToken },
+      USER_CHARLIE_TOKEN,
+      { alias: 'CHARLIE' },
+      'None'
+    )
 
     expect(res.status).to.equal(200)
     expect(res.body).deep.equal(expectedResult)
@@ -124,6 +133,39 @@ describe('routes', function () {
     expect(res.status).to.equal(200)
     expect(res.body).deep.equal(expectedResult)
   })
+  test('update existing member role', async function () {
+    const expectedResult = { address: USER_CHARLIE_TOKEN, alias: 'CHARLIE_UPDATE', role: 'Optimiser' }
+
+    await putMemberAliasRoute({ app, token: userToken }, USER_CHARLIE_TOKEN, { alias: 'CHARLIE' }, 'None')
+    const res = await putMemberAliasRoute(
+      { app, token: userToken },
+      USER_CHARLIE_TOKEN,
+      { alias: 'CHARLIE_UPDATE' },
+      'Optimiser'
+    )
+
+    expect(res.status).to.equal(200)
+    expect(res.body).deep.equal(expectedResult)
+  })
+  test('cannot change self address role', async function () {
+    const selfAddress = USER_BOB_TOKEN
+    const res = await putMemberAliasRoute({ app, token: userToken }, selfAddress, { alias: 'OTHER_ORG' }, 'Optimiser')
+    expect(res.status).to.equal(400)
+    expect(res.body.message).to.equal('cannot update role for self')
+  })
+  test('get member who is self should return role as Self', async function () {
+    const selfAddress = USER_BOB_TOKEN
+    const expectedResult = {
+      address: selfAddress,
+      alias: selfAddress,
+      role: 'Self',
+    }
+
+    const res = await getMemberByAliasOrAddressRoute({ app, token: userToken }, selfAddress)
+
+    expect(res.status).to.equal(200)
+    expect(res.body).to.deep.equal(expectedResult)
+  })
 
   test('update alternative non-existing member with duplicate alias', async function () {
     const expectedResult = { message: 'member alias already exists' }
@@ -150,11 +192,12 @@ describe('routes', function () {
   })
 
   test('get member by alias (internal)', async function () {
-    await putMemberAliasRoute({ app, token: userToken }, USER_CHARLIE_TOKEN, { alias: 'CHARLIE' })
+    await putMemberAliasRoute({ app, token: userToken }, USER_CHARLIE_TOKEN, { alias: 'CHARLIE' }, 'Optimiser')
 
     const expectedResult = {
       address: USER_CHARLIE_TOKEN,
       alias: 'CHARLIE',
+      role: 'Optimiser',
     }
 
     const res = await getMemberByAliasOrAddressRoute({ app, token: internalToken }, 'CHARLIE')
@@ -191,11 +234,12 @@ describe('routes', function () {
   })
 
   test('get member by address', async function () {
-    await putMemberAliasRoute({ app, token: userToken }, USER_CHARLIE_TOKEN, { alias: 'CHARLIE' })
+    await putMemberAliasRoute({ app, token: userToken }, USER_CHARLIE_TOKEN, { alias: 'CHARLIE' }, 'Optimiser')
 
     const expectedResult = {
       address: USER_CHARLIE_TOKEN,
       alias: 'CHARLIE',
+      role: 'Optimiser',
     }
 
     const res = await getMemberByAliasOrAddressRoute({ app, token: userToken }, USER_CHARLIE_TOKEN)
@@ -210,6 +254,7 @@ describe('routes', function () {
     expect(body).to.deep.equal({
       address: USER_BOB_TOKEN,
       alias: USER_BOB_TOKEN,
+      role: 'Self',
     })
   })
 
@@ -225,6 +270,7 @@ describe('routes', function () {
     expect(body).to.deep.equal({
       address: USER_BOB_TOKEN,
       alias: 'TEST',
+      role: 'Self',
     })
   })
 
@@ -235,6 +281,31 @@ describe('routes', function () {
     expect(body).to.deep.equal({
       address: USER_BOB_TOKEN,
       alias: 'TEST',
+      role: 'Self',
     })
+  })
+
+  test('get all roles', async function () {
+    await putRoleRoute({ app, token: internalToken }, 'TestRole')
+    const res = await getRolesRoute({ app, token: internalToken })
+    expect(res.status).to.equal(200)
+    const roles = res.body
+    expect(roles).to.include.members(['Optimiser', 'None', 'TestRole'])
+    expect(roles).to.have.lengthOf(3)
+  })
+
+  test('add role 2x assert it is only added once', async function () {
+    await putRoleRoute({ app, token: internalToken }, 'TestRole')
+    await putRoleRoute({ app, token: internalToken }, 'TestRole')
+    const res = await getRolesRoute({ app, token: internalToken })
+    expect(res.status).to.equal(200)
+    const roles = res.body
+    expect(roles).to.include.members(['Optimiser', 'None', 'TestRole'])
+    expect(roles).to.have.lengthOf(3)
+  })
+
+  test('fails to get all roles with invalid token', async function () {
+    const res = await getRolesRoute({ app, token: 'invalid' })
+    expect(res.status).to.equal(401)
   })
 })

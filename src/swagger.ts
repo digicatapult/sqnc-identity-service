@@ -2,6 +2,7 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
+import { getRoles } from './db/util.js'
 import { Env } from './env.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -40,6 +41,15 @@ export default async function loadApiSpec(env: Env): Promise<unknown> {
       })
     })
   }
+  try {
+    const roles = await getRoles()
 
+    const roleProp = swaggerJson.components.schemas?.Role
+    if (roleProp) {
+      roleProp.enum = roles
+    }
+  } catch (error) {
+    console.warn('Could not patch roles into Swagger:', error)
+  }
   return swaggerJson
 }

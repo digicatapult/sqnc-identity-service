@@ -1,4 +1,6 @@
 import knex from 'knex'
+import { container } from 'tsyringe'
+import Database from './index.js'
 import { TABLE, Where } from './types.js'
 
 // reduces the where condition on a knex query. Gracefully handles undefined values in WhereMatch objects
@@ -26,4 +28,10 @@ export const reduceWhere = <M extends TABLE>(
     }, query)
   }
   return query
+}
+
+export async function getRoles(): Promise<string[]> {
+  const db = container.resolve(Database)
+  const roles = await db.get('roles')
+  return roles.map((role) => role.role)
 }

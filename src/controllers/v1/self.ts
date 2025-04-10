@@ -35,6 +35,7 @@ export class SelfController extends Controller {
       return {
         alias: self.alias,
         address: self.address,
+        role: 'Self',
       }
     }
 
@@ -43,6 +44,7 @@ export class SelfController extends Controller {
       return {
         alias: address,
         address,
+        role: 'Self',
       }
     }
 
