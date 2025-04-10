@@ -136,8 +136,8 @@ export class MembersController extends Controller {
       updateData.role_id = roleFromDb.id
     }
 
-    // Update the member if there is data to update
-    if (Object.keys(updateData).length > 0 && matchMemberByAddress) {
+    // Update the member if there is one
+    if (matchMemberByAddress) {
       const [updatedMember] = await this.db.update('members', { address }, updateData)
       const role = updatedMember.role_id
         ? (await this.db.get('roles', { id: updatedMember.role_id }))[0]?.role
