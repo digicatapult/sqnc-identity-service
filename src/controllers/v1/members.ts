@@ -5,7 +5,6 @@ import { injectable } from 'tsyringe'
 
 import ChainNode from '../../chainNode.js'
 import Database from '../../db/index.js'
-import { RoleRow } from '../../db/types.js'
 import { Env } from '../../env.js'
 import { BadRequest, Conflict, NotFound } from '../../errors.js'
 import { logger } from '../../logger.js'
@@ -95,47 +94,69 @@ export class MembersController extends Controller {
   @Response<Conflict>(409, 'Conflict')
   @Patch('/{address}')
   public async patch(@Path('address') address: Address, @Body() body: MemberBody): Promise<Member> {
-    const { alias } = body
-    let role: RoleRow | undefined = undefined
-    if (body.role) {
-      const rolesFromDb = await this.db.get('roles')
-      if (!isValidRole(rolesFromDb, body.role)) {
-        throw new BadRequest('Invalid role')
-      }
-      const [roleFromDb] = await this.db.get('roles', { role: body.role })
-      role = roleFromDb
-    }
+    const { alias, role: roleName } = body
     const fromDb = await this.db.get('members')
     const fromNode = await this.node.getMembers()
 
     if (!fromNode.includes(address)) {
       throw new NotFound()
     }
-
     const matchMemberByAddress = fromDb.find((member) => member.address === address)
     const matchMemberByAlias = fromDb.find((member) => member.alias === alias)
-
     if (matchMemberByAlias) {
       throw new Conflict('member alias already exists')
     }
-    if (address === this.env.get('SELF_ADDRESS') && body.role) {
+
+    // If no alias or role is provided, return the current member data
+    if (!alias && !roleName && matchMemberByAddress) {
+      return {
+        address,
+        alias: matchMemberByAddress.alias,
+        role: matchMemberByAddress.role_id
+          ? (await this.db.get('roles', { id: matchMemberByAddress.role_id }))[0]?.role
+          : undefined,
+      }
+    }
+    // Check if the address is self and role update is attempted
+    if (address === this.env.get('SELF_ADDRESS') && roleName) {
       throw new BadRequest('cannot update role for self')
     }
 
-    if (!matchMemberByAddress) {
-      await this.db.insert('members', { address, alias, role_id: role === undefined ? null : role.id })
-      return {
-        address,
-        alias,
-        role: role === undefined ? undefined : role.role,
-      }
+    // Prepare update data
+    const updateData: { alias?: string; role_id?: string } = {}
+    if (alias) {
+      updateData.alias = alias
     }
 
-    await this.db.update('members', { address }, { alias, role_id: role === undefined ? null : role.id })
-    return { address, alias, role: role === undefined ? undefined : role.role }
-  }
-}
+    if (roleName) {
+      const [roleFromDb] = await this.db.get('roles', { role: roleName })
+      if (!roleFromDb) {
+        throw new BadRequest('Invalid role')
+      }
+      updateData.role_id = roleFromDb.id
+    }
 
-export function isValidRole(roles: RoleRow[], role: string) {
-  return roles.some((roleRow) => roleRow.role === role)
+    // Update the member if there is data to update
+    if (Object.keys(updateData).length > 0 && matchMemberByAddress) {
+      const [updatedMember] = await this.db.update('members', { address }, updateData)
+      const role = updatedMember.role_id
+        ? (await this.db.get('roles', { id: updatedMember.role_id }))[0]?.role
+        : undefined
+      return {
+        address: updatedMember.address,
+        alias: updatedMember.alias,
+        role,
+      }
+    }
+    // Insert new member if not found
+    if (!alias) {
+      throw new BadRequest('Alias is required to create a new member')
+    }
+    await this.db.insert('members', { address, alias, role_id: updateData.role_id || null })
+    return {
+      address,
+      alias,
+      role: roleName || undefined,
+    }
+  }
 }

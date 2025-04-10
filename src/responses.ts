@@ -24,7 +24,7 @@ export type Role = string | undefined
  * A body for a member
  */
 export type MemberBody = {
-  alias: Alias
+  alias?: Alias
   role?: Role
 }
 
