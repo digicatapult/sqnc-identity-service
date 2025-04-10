@@ -33,8 +33,8 @@ describe('routes', function () {
     internalToken = await getToken('internal')
   })
   beforeEach(async function () {
-    await putRoleRoute({ app, token: userToken }, 'None')
-    await putRoleRoute({ app, token: userToken }, 'Optimiser')
+    await putRoleRoute({ app, token: internalToken }, 'None')
+    await putRoleRoute({ app, token: internalToken }, 'Optimiser')
   })
 
   afterEach(async function () {
@@ -286,8 +286,8 @@ describe('routes', function () {
   })
 
   test('get all roles', async function () {
-    await putRoleRoute({ app, token: userToken }, 'TestRole')
-    const res = await getRolesRoute({ app, token: userToken })
+    await putRoleRoute({ app, token: internalToken }, 'TestRole')
+    const res = await getRolesRoute({ app, token: internalToken })
     expect(res.status).to.equal(200)
     const roles = res.body
     expect(roles).to.include.members(['Optimiser', 'None', 'TestRole'])
@@ -295,16 +295,16 @@ describe('routes', function () {
   })
 
   test('add role 2x assert it is only added once', async function () {
-    await putRoleRoute({ app, token: userToken }, 'TestRole')
-    await putRoleRoute({ app, token: userToken }, 'TestRole')
-    const res = await getRolesRoute({ app, token: userToken })
+    await putRoleRoute({ app, token: internalToken }, 'TestRole')
+    await putRoleRoute({ app, token: internalToken }, 'TestRole')
+    const res = await getRolesRoute({ app, token: internalToken })
     expect(res.status).to.equal(200)
     const roles = res.body
     expect(roles).to.include.members(['Optimiser', 'None', 'TestRole'])
     expect(roles).to.have.lengthOf(3)
   })
 
-  test('get all roles with invalid token', async function () {
+  test('fails to get all roles with invalid token', async function () {
     const res = await getRolesRoute({ app, token: 'invalid' })
     expect(res.status).to.equal(401)
   })

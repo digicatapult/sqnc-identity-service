@@ -1,12 +1,10 @@
-import { Controller, Get, Path, Put, Route, Security, SuccessResponse } from 'tsoa'
+import { Controller, Get, Hidden, Path, Put, Route, Security, SuccessResponse } from 'tsoa'
 import { injectable } from 'tsyringe'
 
 import Database from '../../db/index.js'
 import { logger } from '../../logger.js'
 
 @Route('/v1/roles')
-@Security('oauth2')
-@Security('internal')
 @injectable()
 export class RolesController extends Controller {
   constructor(private db: Database) {
@@ -14,6 +12,8 @@ export class RolesController extends Controller {
   }
 
   @SuccessResponse(200)
+  @Security('oauth2')
+  @Security('internal')
   @Get('/')
   public async getRoles() {
     logger.debug({ msg: 'fetching all roles', controller: '/roles' })
@@ -22,6 +22,8 @@ export class RolesController extends Controller {
   }
 
   @SuccessResponse(200)
+  @Security('internal')
+  @Hidden()
   @Put('/{role}')
   public async put(@Path('role') role: string) {
     logger.debug({ msg: 'new request received', controller: '/roles' })

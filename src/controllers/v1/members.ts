@@ -149,13 +149,10 @@ export class MembersController extends Controller {
       }
     }
     // Insert new member if not found
-    if (!alias) {
-      throw new BadRequest('Alias is required to create a new member')
-    }
-    await this.db.insert('members', { address, alias, role_id: updateData.role_id || null })
+    await this.db.insert('members', { address, alias: alias ? alias : address, role_id: updateData.role_id || null })
     return {
       address,
-      alias,
+      alias: alias ? alias : address,
       role: roleName || undefined,
     }
   }
