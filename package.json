@@ -1,6 +1,6 @@
 {
   "name": "@digicatapult/sqnc-identity-service",
-  "version": "4.2.7",
+  "version": "4.2.8",
   "description": "Identity Service for SQNC",
   "type": "module",
   "main": "src/index.ts",
@@ -57,8 +57,8 @@
     "prom-client": "^15.1.3",
     "swagger-ui-express": "^5.0.1",
     "tsoa": "^6.6.0",
-    "tsyringe": "^4.9.1",
-    "zod": "^3.24.2"
+    "tsyringe": "^4.10.0",
+    "zod": "^3.24.3"
   },
   "devDependencies": {
     "@swc-node/register": "^1.10.10",
