@@ -156,4 +156,12 @@ export class MembersController extends Controller {
       role: roleName || undefined,
     }
   }
+
+  @SuccessResponse(200)
+  @Response<NotFound>(404, 'Not found')
+  @Get('/{address}/org-data')
+  public async getOrgData(@Path('address') address: string) {
+    const orgData = await this.node.getAttachmentApiAddresses(address)
+    return orgData
+  }
 }

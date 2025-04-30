@@ -148,3 +148,18 @@ export async function getRolesRoute({ app, token }: context) {
       return err
     })
 }
+
+export async function getOrgDataRoute({ app, token }: context, address: string) {
+  return request(app)
+    .get(`/${API_MAJOR_VERSION}/members/${address}/org-data`)
+    .set('Accept', 'application/json')
+    .set('Content-Type', 'application/json')
+    .set('Authorization', `Bearer ${token}`)
+    .then((response) => {
+      return response
+    })
+    .catch((err) => {
+      console.error(`getOrgDataErr ${err}`)
+      return err
+    })
+}

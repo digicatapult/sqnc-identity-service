@@ -8,6 +8,7 @@ import { getToken } from '../helper/auth.js'
 import {
   getMemberByAliasOrAddressRoute,
   getMembersRoute,
+  getOrgDataRoute,
   getRolesRoute,
   getSelfAddress,
   putMemberAliasRoute,
@@ -307,5 +308,39 @@ describe('routes', function () {
   test('fails to get all roles with invalid token', async function () {
     const res = await getRolesRoute({ app, token: 'invalid' })
     expect(res.status).to.equal(401)
+  })
+
+  describe.only('getOrgData route', function () {
+    test('get org data with valid addresses', async function () {
+      // const expectedResult = {
+      //   /* expected org data structure */
+      // }
+
+      const res = await getOrgDataRoute({ app, token: userToken }, USER_BOB_TOKEN)
+      console.log(res.body)
+
+      expect(res.status).to.equal(200)
+      // expect(res.body).to.deep.equal(expectedResult)
+    })
+
+    test('get org data with invalid token should 401', async function () {
+      const address = USER_CHARLIE_TOKEN
+
+      const res = await getOrgDataRoute({ app, token: 'invalid' }, address)
+
+      expect(res.status).to.equal(401)
+    })
+
+    test('get org data with empty addresses should return empty result', async function () {
+      const addresses: string[] = []
+      const expectedResult = {
+        /* expected empty org data structure */
+      }
+
+      const res = await getOrgDataRoute({ app, token: userToken }, address)
+
+      expect(res.status).to.equal(200)
+      expect(res.body).to.deep.equal(expectedResult)
+    })
   })
 })
