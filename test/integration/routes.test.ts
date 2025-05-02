@@ -329,7 +329,7 @@ describe('routes', function () {
       await node.submitProcess(extrinsic, async (state) => {
         console.log(state)
       })
-
+      await node.clearAllTransactions()
       const extrinsic2 = await node.prepareProcess({
         key: 'OidcConfigurationEndpoint',
         value: 'https://oidc.example.com',
@@ -337,9 +337,8 @@ describe('routes', function () {
       await node.submitProcess(extrinsic2, async (state) => {
         console.log(state)
       })
-
+      await node.clearAllTransactions()
       const res = await getOrgDataRoute({ app, token: userToken }, USER_ALICE_TOKEN)
-      console.log(res.body)
 
       expect(res.status).to.equal(200)
       expect(res.body).to.deep.equal(expectedResult)

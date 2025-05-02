@@ -72,4 +72,14 @@ export default class ExtendedChainNode extends ChainNode {
       this.logger.warn(`Error in seed transaction: ${err}`)
     }
   }
+  // continue sealing blocks if there are transactions
+  async clearAllTransactions(createEmpty: boolean = true, finalise: boolean = true) {
+    while (true) {
+      const pending = await this.api.rpc.author.pendingExtrinsics()
+      if (pending.length === 0) {
+        return
+      }
+      await this.api.rpc.engine.createBlock(createEmpty, finalise)
+    }
+  }
 }

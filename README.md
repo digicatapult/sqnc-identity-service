@@ -24,6 +24,21 @@ And run the DB migrations
 npm run db:migrate
 ```
 
+## Tests
+
+Tests require the test dependency services be brought up using docker:
+
+```sh
+# start dependencies
+docker compose -f ./docker-compose-test.yml up -d
+# install packages
+npm i
+# run migrations
+npm run db:migrate
+# run tests
+npm run test
+```
+
 ## Environment Variables
 
 `sqnc-identity-service` is configured primarily using environment variables as follows:
