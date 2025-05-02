@@ -1,4 +1,5 @@
-import { ApiPromise, WsProvider } from '@polkadot/api'
+import { ApiPromise, Keyring, WsProvider } from '@polkadot/api'
+import { Mutex } from 'async-mutex'
 
 import { Logger } from 'pino'
 import { injectable, singleton } from 'tsyringe'
@@ -21,15 +22,23 @@ type OrgData = {
 @singleton()
 @injectable()
 export default class ChainNode {
-  private provider: WsProvider
-  private api: ApiPromise
+  protected provider: WsProvider
+  protected api: ApiPromise
+  protected keyring: Keyring
+  protected userUri: string
+  protected lastSubmittedNonce: number
+  protected mutex = new Mutex()
+  protected proxyAddress: string | null = null
 
-  private logger: Logger
+  protected logger: Logger
 
-  constructor(private env: Env) {
+  constructor(protected env: Env) {
     this.logger = logger.child({ module: 'ChainNode' })
     this.provider = new WsProvider(`ws://${this.env.get('API_HOST')}:${this.env.get('API_PORT')}`)
     this.api = new ApiPromise({ provider: this.provider })
+    this.keyring = new Keyring({ type: 'sr25519' })
+    this.userUri = env.get('USER_URI')
+    this.lastSubmittedNonce = -1
 
     this.api.isReadyOrError.catch(() => {
       // prevent unhandled promise rejection errors
@@ -64,25 +73,39 @@ export default class ChainNode {
 
     const attachmentAddresses = await this.api.query.organisationData.orgData(account, attachmentKey)
     const oidcAddresses = await this.api.query.organisationData.orgData(account, oidcKey)
+
     if (attachmentAddresses && oidcAddresses) {
       const jsonAddress = attachmentAddresses.toJSON()
-      const parsedAddress = addressParser.parse(jsonAddress)
-      const decodedAddressLiteral = hexToAscii(parsedAddress.literal)
-
       const jsonOidcAddress = oidcAddresses.toJSON()
-      const parsedOidcAddress = addressParser.parse(jsonOidcAddress)
-      const decodedOidcLiteral = hexToAscii(parsedOidcAddress.literal)
 
-      if (decodedAddressLiteral.match(urlRegex) && decodedOidcLiteral.match(urlRegex)) {
-        decodedLiterals.push({
-          account: account,
-          attachmentEndpointAddress: decodedAddressLiteral,
-          oidcConfigurationEndpointAddress: decodedOidcLiteral,
-        })
+      try {
+        const parsedOidcAddress = addressParser.parse(jsonOidcAddress)
+        const parsedAddress = addressParser.parse(jsonAddress)
+        const decodedAddressLiteral = hexToAscii(parsedAddress.literal)
+
+        const decodedOidcLiteral = hexToAscii(parsedOidcAddress.literal)
+
+        if (decodedAddressLiteral.match(urlRegex) && decodedOidcLiteral.match(urlRegex)) {
+          decodedLiterals.push({
+            account: account,
+            attachmentEndpointAddress: decodedAddressLiteral,
+            oidcConfigurationEndpointAddress: decodedOidcLiteral,
+          })
+        }
+      } catch (error) {
+        this.logger.error(`Error getting org data: ${error}`)
       }
     }
 
-    return decodedLiterals
+    return decodedLiterals.length > 0
+      ? decodedLiterals
+      : [
+          {
+            account: account,
+            attachmentEndpointAddress: '',
+            oidcConfigurationEndpointAddress: '',
+          },
+        ]
   }
 }
 

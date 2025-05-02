@@ -1,39 +1,57 @@
-import { type Logger } from 'pino'
 import { SubmittableResult } from '@polkadot/api'
 import { SubmittableExtrinsic } from '@polkadot/api/types'
+import { TransactionState } from '../../src/models/transaction.js'
 
+import ChainNode from '../../src/chainNode.js'
 import { type Env } from '../../src/env.js'
-import { ProxyRequest } from '../../src/models/proxy.js'
-import ChainNode, { EventData } from '../../src/lib/chainNode.js'
-import { z } from 'zod'
-
-const proxyParser = z.tuple([
-  z.array(
-    z.object({
-      delay: z.number(),
-      delegate: z.string(),
-      proxyType: z.string(),
-    })
-  ),
-  z.number(),
-])
 
 export default class ExtendedChainNode extends ChainNode {
-  constructor(logger: Logger, env: Env) {
-    super(logger, env)
+  constructor(env: Env) {
+    super(env)
   }
 
-  async submitRunProcessForProxy(extrinsic: SubmittableExtrinsic<'promise', SubmittableResult>): Promise<void> {
+  async prepareProcess(seedData: {
+    key: string
+    value: string
+  }): Promise<SubmittableExtrinsic<'promise', SubmittableResult>> {
+    await this.api.isReady
+    const key = { [seedData.key]: null }
+    const value = { Literal: seedData.value }
+    // Create the extrinsic with seed data
+    let extrinsic: SubmittableExtrinsic<'promise', SubmittableResult> = this.api.tx.organisationData.setValue(
+      key,
+      value
+    )
+    if (this.proxyAddress) {
+      extrinsic = this.api.tx.proxy.proxy({ id: this.proxyAddress }, null, extrinsic)
+    }
+    const account = this.keyring.addFromUri(this.userUri)
+
+    const nonce = await this.mutex.runExclusive(async () => {
+      const nextTxPoolNonce = (await this.api.rpc.system.accountNextIndex(account.publicKey)).toNumber()
+      const nonce = Math.max(nextTxPoolNonce, this.lastSubmittedNonce + 1)
+      this.lastSubmittedNonce = nonce
+      return nonce
+    })
+
+    const signed = await extrinsic.signAsync(account, { nonce })
+    return signed
+  }
+
+  async submitProcess(
+    extrinsic: SubmittableExtrinsic<'promise', SubmittableResult>,
+    transactionDbUpdate: (state: TransactionState) => Promise<void>
+  ): Promise<void> {
     try {
-      this.logger.debug('Submitting Transaction %j', extrinsic.hash.toHex())
+      this.logger.debug('Submitting Seed Transaction %j', extrinsic.hash.toHex())
       const unsub: () => void = await extrinsic.send((result: SubmittableResult): void => {
         this.logger.debug('result.status %s', JSON.stringify(result.status))
 
         const { dispatchError, status } = result
 
         if (dispatchError) {
-          this.logger.warn('dispatch error %s', dispatchError, extrinsic)
-
+          this.logger.warn('dispatch error %s', dispatchError)
+          transactionDbUpdate('failed')
           unsub()
           if (dispatchError.isModule) {
             const decoded = this.api.registry.findMetaError(dispatchError.asModule)
@@ -43,64 +61,15 @@ export default class ExtendedChainNode extends ChainNode {
           throw new Error(`Unknown node dispatch error: ${dispatchError}`)
         }
 
+        if (status.isInBlock) transactionDbUpdate('inBlock')
         if (status.isFinalized) {
-          const processRanEvent = result.events.find(
-            ({ event: { method } }) => method === 'ProxyAdded' || 'ProxyRemoved'
-          )
-          const data = processRanEvent?.event?.data as EventData
-          // is there anything sensible I can check here?
-          if (!data) {
-            throw new Error('No data returned')
-          }
-
+          transactionDbUpdate('finalised')
           unsub()
         }
       })
     } catch (err) {
-      this.logger.warn(`Error in run process transaction: ${err}`)
+      transactionDbUpdate('failed')
+      this.logger.warn(`Error in seed transaction: ${err}`)
     }
-  }
-
-  async addProxy({ delegatingAlias, proxyAddress, proxyType, delay = 0 }: ProxyRequest) {
-    // The proxy address (the account you want to set as a proxy for the delegatingAlias provided)
-    // Proxy type (e.g., Any, Governance,RunProcess)
-    // Delay in blocks (typically 0)
-    await this.api.isReady
-    const result = this.api.tx.proxy.addProxy(proxyAddress, proxyType, delay)
-
-    // Send the transaction and wait for confirmation
-    const account = this.keyring.addFromUri(delegatingAlias)
-
-    const nonce = await this.mutex.runExclusive(async () => {
-      const nextTxPoolNonce = (await this.api.rpc.system.accountNextIndex(account.publicKey)).toNumber()
-
-      return nextTxPoolNonce
-    })
-    const signed = await result.signAsync(account, { nonce })
-    return signed
-  }
-  async removeProxy({ delegatingAlias, proxyAddress, proxyType, delay = 0 }: ProxyRequest) {
-    await this.api.isReady
-    const result = this.api.tx.proxy.removeProxy(proxyAddress, proxyType, delay)
-
-    // Send the transaction and wait for confirmation
-    const account = this.keyring.addFromUri(delegatingAlias)
-
-    const nonce = await this.mutex.runExclusive(async () => {
-      const nextTxPoolNonce = (await this.api.rpc.system.accountNextIndex(account.publicKey)).toNumber()
-
-      return nextTxPoolNonce
-    })
-    const signed = await result.signAsync(account, { nonce })
-    return signed
-  }
-
-  async getProxies(delegatingAlias: string) {
-    await this.api.isReady
-
-    const account = this.keyring.addFromUri(delegatingAlias)
-    const proxies = await this.api.query.proxy.proxies(account.address)
-    const asJson = proxies.toJSON()
-    return proxyParser.parse(asJson)[0]
   }
 }
