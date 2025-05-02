@@ -313,7 +313,7 @@ describe('routes', function () {
     expect(res.status).to.equal(401)
   })
 
-  describe.only('getOrgData route', function () {
+  describe('getOrgData route', function () {
     test('get org data with valid addresses', async function () {
       const expectedResult = [
         {
