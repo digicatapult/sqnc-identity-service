@@ -1,4 +1,4 @@
-import { ApiPromise, Keyring, WsProvider } from '@polkadot/api'
+import { ApiPromise, WsProvider } from '@polkadot/api'
 import { Mutex } from 'async-mutex'
 
 import { Logger } from 'pino'
@@ -24,21 +24,14 @@ type OrgData = {
 export default class ChainNode {
   protected provider: WsProvider
   protected api: ApiPromise
-  protected keyring: Keyring
-  protected userUri: string
-  protected lastSubmittedNonce: number
   protected mutex = new Mutex()
   protected proxyAddress: string | null = null
-
   protected logger: Logger
 
   constructor(protected env: Env) {
     this.logger = logger.child({ module: 'ChainNode' })
     this.provider = new WsProvider(`ws://${this.env.get('API_HOST')}:${this.env.get('API_PORT')}`)
     this.api = new ApiPromise({ provider: this.provider })
-    this.keyring = new Keyring({ type: 'sr25519' })
-    this.userUri = env.get('USER_URI')
-    this.lastSubmittedNonce = -1
 
     this.api.isReadyOrError.catch(() => {
       // prevent unhandled promise rejection errors

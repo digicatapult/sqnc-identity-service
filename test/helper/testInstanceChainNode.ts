@@ -1,12 +1,18 @@
-import { SubmittableResult } from '@polkadot/api'
+import { Keyring, SubmittableResult } from '@polkadot/api'
 import { SubmittableExtrinsic } from '@polkadot/api/types'
 
 import ChainNode from '../../src/chainNode.js'
 import { type Env } from '../../src/env.js'
 
 export default class ExtendedChainNode extends ChainNode {
+  protected keyring: Keyring
+  protected userUri: string
+  protected lastSubmittedNonce: number
   constructor(env: Env) {
     super(env)
+    this.keyring = new Keyring({ type: 'sr25519' })
+    this.userUri = env.get('USER_URI')
+    this.lastSubmittedNonce = -1
   }
 
   async prepareProcess(seedData: {
