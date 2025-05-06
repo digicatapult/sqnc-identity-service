@@ -77,22 +77,15 @@ export default class ChainNode {
       const jsonAddress = attachmentAddresses.toJSON()
       const jsonOidcAddress = oidcAddresses.toJSON()
 
-      try {
-        const parsedOidcAddress = addressParser.parse(jsonOidcAddress)
-        const parsedAddress = addressParser.parse(jsonAddress)
-        const decodedAddressLiteral = hexToAscii(parsedAddress.literal)
+      const decodedAttachment = await this.parseAndDecodeAddress(jsonAddress)
+      const decodedOidc = await this.parseAndDecodeAddress(jsonOidcAddress)
 
-        const decodedOidcLiteral = hexToAscii(parsedOidcAddress.literal)
-
-        if (new URL(decodedAddressLiteral) && new URL(decodedOidcLiteral)) {
-          decodedLiterals = {
-            account: account,
-            attachmentEndpointAddress: decodedAddressLiteral,
-            oidcConfigurationEndpointAddress: decodedOidcLiteral,
-          }
+      if (decodedAttachment !== null && decodedOidc !== null) {
+        decodedLiterals = {
+          account: account,
+          attachmentEndpointAddress: decodedAttachment,
+          oidcConfigurationEndpointAddress: decodedOidc,
         }
-      } catch (error) {
-        this.logger.error(`Error getting org data: ${error}`)
       }
     }
 
@@ -103,6 +96,21 @@ export default class ChainNode {
           attachmentEndpointAddress: '',
           oidcConfigurationEndpointAddress: '',
         }
+  }
+
+  async parseAndDecodeAddress(jsonAddress: any): Promise<string | null> {
+    try {
+      const parsedAddress = addressParser.parse(jsonAddress)
+      const decodedAddressLiteral = hexToAscii(parsedAddress.literal)
+
+      // Validate if the decoded address is a valid URL
+      if (new URL(decodedAddressLiteral)) {
+        return decodedAddressLiteral
+      }
+    } catch (error) {
+      this.logger.error(`Error parsing and decoding address: ${error}`)
+    }
+    return null
   }
 }
 
