@@ -63,13 +63,12 @@ export default class ChainNode {
     return listParser.parse(members)
   }
 
-  async getAttachmentApiAddresses(account: string): Promise<OrgData[]> {
+  async getAttachmentApiAddresses(account: string): Promise<OrgData> {
     await this.api.isReady
     // Call the organisationData RPC method with the appropriate parameters
     const attachmentKey = 'AttachmentEndpoint'
     const oidcKey = 'OidcConfigurationEndpoint'
-    const decodedLiterals: OrgData[] = []
-    const urlRegex = /^(https?:\/\/[^\s/$.?#].[^\s]*)$/i
+    let decodedLiterals: OrgData | null = null
 
     const attachmentAddresses = await this.api.query.organisationData.orgData(account, attachmentKey)
     const oidcAddresses = await this.api.query.organisationData.orgData(account, oidcKey)
@@ -85,27 +84,25 @@ export default class ChainNode {
 
         const decodedOidcLiteral = hexToAscii(parsedOidcAddress.literal)
 
-        if (decodedAddressLiteral.match(urlRegex) && decodedOidcLiteral.match(urlRegex)) {
-          decodedLiterals.push({
+        if (new URL(decodedAddressLiteral) && new URL(decodedOidcLiteral)) {
+          decodedLiterals = {
             account: account,
             attachmentEndpointAddress: decodedAddressLiteral,
             oidcConfigurationEndpointAddress: decodedOidcLiteral,
-          })
+          }
         }
       } catch (error) {
         this.logger.error(`Error getting org data: ${error}`)
       }
     }
 
-    return decodedLiterals.length > 0
+    return decodedLiterals !== null
       ? decodedLiterals
-      : [
-          {
-            account: account,
-            attachmentEndpointAddress: '',
-            oidcConfigurationEndpointAddress: '',
-          },
-        ]
+      : {
+          account: account,
+          attachmentEndpointAddress: '',
+          oidcConfigurationEndpointAddress: '',
+        }
   }
 }
 

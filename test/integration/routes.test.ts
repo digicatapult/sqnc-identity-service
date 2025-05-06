@@ -315,28 +315,23 @@ describe('routes', function () {
 
   describe('getOrgData route', function () {
     test('get org data with valid addresses', async function () {
-      const expectedResult = [
-        {
-          account: '5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY',
-          attachmentEndpointAddress: 'https://attachment.example.com',
-          oidcConfigurationEndpointAddress: 'https://oidc.example.com',
-        },
-      ]
+      const expectedResult = {
+        account: '5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY',
+        attachmentEndpointAddress: 'https://attachment.example.com',
+        oidcConfigurationEndpointAddress: 'https://oidc.example.com',
+      }
+
       const extrinsic = await node.prepareProcess({
         key: 'AttachmentEndpoint',
         value: 'https://attachment.example.com',
       })
-      await node.submitProcess(extrinsic, async (state) => {
-        console.log(state)
-      })
+      await node.submitProcess(extrinsic)
       await node.clearAllTransactions()
       const extrinsic2 = await node.prepareProcess({
         key: 'OidcConfigurationEndpoint',
         value: 'https://oidc.example.com',
       })
-      await node.submitProcess(extrinsic2, async (state) => {
-        console.log(state)
-      })
+      await node.submitProcess(extrinsic2)
       await node.clearAllTransactions()
       const res = await getOrgDataRoute({ app, token: userToken }, USER_ALICE_TOKEN)
 
@@ -344,13 +339,11 @@ describe('routes', function () {
       expect(res.body).to.deep.equal(expectedResult)
     })
     test('does not get org data with valid addresses', async function () {
-      const expectedResult = [
-        {
-          account: '5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty',
-          attachmentEndpointAddress: '',
-          oidcConfigurationEndpointAddress: '',
-        },
-      ]
+      const expectedResult = {
+        account: '5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty',
+        attachmentEndpointAddress: '',
+        oidcConfigurationEndpointAddress: '',
+      }
 
       const res = await getOrgDataRoute({ app, token: userToken }, USER_BOB_TOKEN)
       expect(res.status).to.equal(200)

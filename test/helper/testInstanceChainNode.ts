@@ -1,6 +1,5 @@
 import { SubmittableResult } from '@polkadot/api'
 import { SubmittableExtrinsic } from '@polkadot/api/types'
-import { TransactionState } from '../../src/models/transaction.js'
 
 import ChainNode from '../../src/chainNode.js'
 import { type Env } from '../../src/env.js'
@@ -38,10 +37,7 @@ export default class ExtendedChainNode extends ChainNode {
     return signed
   }
 
-  async submitProcess(
-    extrinsic: SubmittableExtrinsic<'promise', SubmittableResult>,
-    transactionDbUpdate: (state: TransactionState) => Promise<void>
-  ): Promise<void> {
+  async submitProcess(extrinsic: SubmittableExtrinsic<'promise', SubmittableResult>): Promise<void> {
     try {
       this.logger.debug('Submitting Seed Transaction %j', extrinsic.hash.toHex())
       const unsub: () => void = await extrinsic.send((result: SubmittableResult): void => {
@@ -51,7 +47,6 @@ export default class ExtendedChainNode extends ChainNode {
 
         if (dispatchError) {
           this.logger.warn('dispatch error %s', dispatchError)
-          transactionDbUpdate('failed')
           unsub()
           if (dispatchError.isModule) {
             const decoded = this.api.registry.findMetaError(dispatchError.asModule)
@@ -61,14 +56,11 @@ export default class ExtendedChainNode extends ChainNode {
           throw new Error(`Unknown node dispatch error: ${dispatchError}`)
         }
 
-        if (status.isInBlock) transactionDbUpdate('inBlock')
         if (status.isFinalized) {
-          transactionDbUpdate('finalised')
           unsub()
         }
       })
     } catch (err) {
-      transactionDbUpdate('failed')
       this.logger.warn(`Error in seed transaction: ${err}`)
     }
   }
