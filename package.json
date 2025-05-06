@@ -38,7 +38,7 @@
   },
   "homepage": "https://github.com/digicatapult/sqnc-identity-service#readme",
   "dependencies": {
-    "@digicatapult/tsoa-oauth-express": "^1.0.15",
+    "@digicatapult/tsoa-oauth-express": "^1.0.17",
     "@grpc/grpc-js": "^1.13.3",
     "@opentelemetry/auto-instrumentations-node": "^0.58.0",
     "@polkadot/api": "^15.9.2",
