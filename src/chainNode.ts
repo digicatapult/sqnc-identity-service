@@ -1,5 +1,4 @@
 import { ApiPromise, WsProvider } from '@polkadot/api'
-import { Mutex } from 'async-mutex'
 
 import { Logger } from 'pino'
 import { injectable, singleton } from 'tsyringe'
@@ -24,8 +23,6 @@ type OrgData = {
 export default class ChainNode {
   protected provider: WsProvider
   protected api: ApiPromise
-  protected mutex = new Mutex()
-  protected proxyAddress: string | null = null
   protected logger: Logger
 
   constructor(protected env: Env) {

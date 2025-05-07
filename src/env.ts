@@ -18,7 +18,6 @@ const envConfig = {
   DB_HOST: envalid.host({ devDefault: 'localhost' }),
   DB_PORT: envalid.port({ default: 5432 }),
   DB_NAME: envalid.str({ default: 'sqnc' }),
-  USER_URI: envalid.str({ devDefault: '//Alice' }), //instead of this should we be getting self address or sth?
   DB_USERNAME: envalid.str({ devDefault: 'postgres' }),
   DB_PASSWORD: envalid.str({ devDefault: 'postgres' }),
   API_SWAGGER_BG_COLOR: envalid.str({ default: '#fafafa' }),

@@ -1,6 +1,7 @@
 import { Keyring, SubmittableResult } from '@polkadot/api'
 import { SubmittableExtrinsic } from '@polkadot/api/types'
 
+import { Mutex } from 'async-mutex'
 import ChainNode from '../../src/chainNode.js'
 import { type Env } from '../../src/env.js'
 
@@ -8,6 +9,8 @@ export default class ExtendedChainNode extends ChainNode {
   protected keyring: Keyring
   protected userUri: string
   protected lastSubmittedNonce: number
+  protected mutex = new Mutex()
+  protected proxyAddress: string | null = null
   constructor(env: Env) {
     super(env)
     this.keyring = new Keyring({ type: 'sr25519' })
