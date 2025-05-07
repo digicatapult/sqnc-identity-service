@@ -14,7 +14,7 @@ export default class ExtendedChainNode extends ChainNode {
   constructor(env: Env) {
     super(env)
     this.keyring = new Keyring({ type: 'sr25519' })
-    this.userUri = env.get('USER_URI')
+    this.userUri = '//Alice'
     this.lastSubmittedNonce = -1
   }
 
