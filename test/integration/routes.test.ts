@@ -3,16 +3,19 @@ import type express from 'express'
 import { expect } from 'chai'
 import { afterEach, before, describe, test } from 'mocha'
 
+import { Env } from '../../src/env.js'
 import createHttpServer from '../../src/server.js'
 import { getToken } from '../helper/auth.js'
 import {
   getMemberByAliasOrAddressRoute,
   getMembersRoute,
+  getOrgDataRoute,
   getRolesRoute,
   getSelfAddress,
   putMemberAliasRoute,
   putRoleRoute,
 } from '../helper/routeHelper.js'
+import ExtendedChainNode from '../helper/testInstanceChainNode.js'
 import { cleanup } from '../seeds/members.js'
 
 const USER_ALICE_TOKEN = '5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY'
@@ -25,6 +28,7 @@ describe('routes', function () {
   let app: express.Express
   let userToken: string
   let internalToken: string
+  const node = new ExtendedChainNode(new Env())
 
   before(async function () {
     await cleanup()
@@ -307,5 +311,51 @@ describe('routes', function () {
   test('fails to get all roles with invalid token', async function () {
     const res = await getRolesRoute({ app, token: 'invalid' })
     expect(res.status).to.equal(401)
+  })
+
+  describe('getOrgData route', function () {
+    test('get org data with valid addresses', async function () {
+      const expectedResult = {
+        account: '5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY',
+        attachmentEndpointAddress: 'https://attachment.example.com',
+        oidcConfigurationEndpointAddress: 'https://oidc.example.com',
+      }
+
+      const extrinsic = await node.prepareProcess({
+        key: 'AttachmentEndpoint',
+        value: 'https://attachment.example.com',
+      })
+      await node.submitProcess(extrinsic)
+      await node.clearAllTransactions()
+      const extrinsic2 = await node.prepareProcess({
+        key: 'OidcConfigurationEndpoint',
+        value: 'https://oidc.example.com',
+      })
+      await node.submitProcess(extrinsic2)
+      await node.clearAllTransactions()
+      const res = await getOrgDataRoute({ app, token: userToken }, USER_ALICE_TOKEN)
+
+      expect(res.status).to.equal(200)
+      expect(res.body).to.deep.equal(expectedResult)
+    })
+    test('does not get org data with valid addresses', async function () {
+      const expectedResult = {
+        account: '5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty',
+        attachmentEndpointAddress: '',
+        oidcConfigurationEndpointAddress: '',
+      }
+
+      const res = await getOrgDataRoute({ app, token: userToken }, USER_BOB_TOKEN)
+      expect(res.status).to.equal(200)
+      expect(res.body).to.deep.equal(expectedResult)
+    })
+
+    test('get org data with invalid token should 401', async function () {
+      const address = USER_CHARLIE_TOKEN
+
+      const res = await getOrgDataRoute({ app, token: 'invalid' }, address)
+
+      expect(res.status).to.equal(401)
+    })
   })
 })

@@ -1,0 +1,4 @@
+include:
+  - path:
+      - docker-compose.yml
+      - docker/test.override.yml

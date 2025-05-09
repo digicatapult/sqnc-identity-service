@@ -10,6 +10,7 @@ jobs:
   tests:
     uses: digicatapult/shared-workflows/.github/workflows/tests-npm.yml@main
     with:
+      docker_compose_file: './docker-compose-test.yml'
       npm_build_command: 'npm run tsoa:build'
       pre_test_command: 'npm run db:migrate'
       tests: '["test"]'
