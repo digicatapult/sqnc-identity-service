@@ -21,10 +21,12 @@ export default class ExtendedChainNode extends ChainNode {
   async prepareProcess(seedData: {
     key: string
     value: string
+    preimage?: boolean | undefined
   }): Promise<SubmittableExtrinsic<'promise', SubmittableResult>> {
     await this.api.isReady
     const key = { [seedData.key]: null }
-    const value = { Literal: seedData.value }
+    const value = seedData.preimage ? { Preimage: seedData.value } : { Literal: seedData.value }
+
     // Create the extrinsic with seed data
     let extrinsic: SubmittableExtrinsic<'promise', SubmittableResult> = this.api.tx.organisationData.setValue(
       key,
@@ -46,14 +48,44 @@ export default class ExtendedChainNode extends ChainNode {
     return signed
   }
 
-  async submitProcess(extrinsic: SubmittableExtrinsic<'promise', SubmittableResult>): Promise<void> {
+  async notePreimage(url: string) {
+    await this.api.isReady
+    let extrinsic: SubmittableExtrinsic<'promise', SubmittableResult> = this.api.tx.preimage.notePreimage(url)
+    const account = this.keyring.addFromUri(this.userUri)
+
+    const nonce = await this.mutex.runExclusive(async () => {
+      const nextTxPoolNonce = (await this.api.rpc.system.accountNextIndex(account.publicKey)).toNumber()
+      const nonce = Math.max(nextTxPoolNonce, this.lastSubmittedNonce + 1)
+      this.lastSubmittedNonce = nonce
+      return nonce
+    })
+
+    const signed = await extrinsic.signAsync(account, { nonce })
+    return signed
+  }
+  async unnotePreimage(hash: string) {
+    await this.api.isReady
+    let extrinsic: SubmittableExtrinsic<'promise', SubmittableResult> = this.api.tx.preimage.unnotePreimage(hash)
+    const account = this.keyring.addFromUri(this.userUri)
+
+    const nonce = await this.mutex.runExclusive(async () => {
+      const nextTxPoolNonce = (await this.api.rpc.system.accountNextIndex(account.publicKey)).toNumber()
+      const nonce = Math.max(nextTxPoolNonce, this.lastSubmittedNonce + 1)
+      this.lastSubmittedNonce = nonce
+      return nonce
+    })
+
+    const signed = await extrinsic.signAsync(account, { nonce })
+    return signed
+  }
+
+  async submitProcess(extrinsic: SubmittableExtrinsic<'promise', SubmittableResult>) {
     try {
-      this.logger.debug('Submitting Seed Transaction %j', extrinsic.hash.toHex())
+      this.logger.debug('Submitting  Transaction %j', extrinsic.hash.toHex())
       const unsub: () => void = await extrinsic.send((result: SubmittableResult): void => {
         this.logger.debug('result.status %s', JSON.stringify(result.status))
 
         const { dispatchError, status } = result
-
         if (dispatchError) {
           this.logger.warn('dispatch error %s', dispatchError)
           unsub()
