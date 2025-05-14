@@ -5,4 +5,5 @@ ignores: [
   'rimraf',
   '@grpc/grpc-js',
   '@opentelemetry/auto-instrumentations-node',
+  '@polkadot/util-crypto'
 ]
