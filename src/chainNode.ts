@@ -8,15 +8,27 @@ import { Env } from './env.js'
 import { logger } from './logger.js'
 
 const listParser = z.array(z.string())
-const addressParser = z.object({
-  literal: z.string().regex(/^0x[0-9a-fA-F]+$/), // Ensures the string is a valid hex
-})
+const addressParser = z.union([
+  z.object({
+    literal: z.string().regex(/^0x[0-9a-fA-F]+$/), //
+  }),
+  z.object({
+    preimage: z.string().regex(/^0x[0-9a-fA-F]+$/), // Hex string starting with 0x
+  }),
+])
 
 type OrgData = {
   account: string
   attachmentEndpointAddress: string
   oidcConfigurationEndpointAddress: string
 }
+
+const preimageResponseParser = z.object({
+  unrequested: z.object({
+    ticket: z.tuple([z.string(), z.null()]),
+    len: z.number(),
+  }),
+})
 
 @singleton()
 @injectable()
@@ -91,8 +103,11 @@ export default class ChainNode {
   async parseAndDecodeAddress(jsonAddress: any): Promise<string | null> {
     try {
       const parsedAddress = addressParser.parse(jsonAddress)
-      const decodedAddressLiteral = hexToAscii(parsedAddress.literal)
-
+      // if literal present, decode it, if preimage present go and fetch it
+      const decodedAddressLiteral =
+        'literal' in parsedAddress
+          ? hexToAscii(parsedAddress.literal)
+          : hexToAscii((await this.retrievePreimage(parsedAddress.preimage)) as string)
       // Validate if the decoded address is a valid URL
       if (new URL(decodedAddressLiteral)) {
         return decodedAddressLiteral
@@ -101,6 +116,20 @@ export default class ChainNode {
       this.logger.error(`Error parsing and decoding address: ${error}`)
     }
     return null
+  }
+
+  async retrievePreimage(preimageHash: string) {
+    await this.api.isReady
+    const length = await this.preimageLength(preimageHash)
+    const preimage = await this.api.query.preimage.preimageFor([preimageHash, length])
+    return preimage.toJSON()
+  }
+
+  async preimageLength(preimageHash: string) {
+    await this.api.isReady
+    const preimage = await this.api.query.preimage.requestStatusFor(preimageHash)
+    const parsedPreimage = preimageResponseParser.parse(preimage.toJSON())
+    return parsedPreimage.unrequested.len
   }
 }
 

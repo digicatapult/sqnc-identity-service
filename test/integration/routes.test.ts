@@ -3,6 +3,7 @@ import type express from 'express'
 import { expect } from 'chai'
 import { afterEach, before, describe, test } from 'mocha'
 
+import { blake2AsHex } from '@polkadot/util-crypto'
 import { Env } from '../../src/env.js'
 import createHttpServer from '../../src/server.js'
 import { getToken } from '../helper/auth.js'
@@ -356,6 +357,78 @@ describe('routes', function () {
       const res = await getOrgDataRoute({ app, token: 'invalid' }, address)
 
       expect(res.status).to.equal(401)
+    })
+    describe('get org data with addresses set in preimage ', async function () {
+      const preimageUrl = 'https://attachment.example.com/set/in/preimage'
+      const attachmentHash = blake2AsHex(preimageUrl)
+      const preimageUrl2 = 'https://oidc.example.com/set/in/preimage'
+      const oidcHash = blake2AsHex(preimageUrl2)
+      beforeEach(async function () {
+        const preimageExtrinsic = await node.notePreimage(preimageUrl)
+        const preimageExtrinsic2 = await node.notePreimage(preimageUrl2)
+        await node.submitProcess(preimageExtrinsic)
+        await node.submitProcess(preimageExtrinsic2)
+        await node.clearAllTransactions()
+      })
+
+      afterEach(async function () {
+        const unnoteAttachment = await node.unnotePreimage(attachmentHash)
+        const unnoteOidc = await node.unnotePreimage(oidcHash)
+        await node.submitProcess(unnoteAttachment)
+        await node.submitProcess(unnoteOidc)
+        await node.clearAllTransactions()
+      })
+
+      test('get org data with addresses set as preimage ', async function () {
+        const expectedResult = {
+          account: '5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY',
+          attachmentEndpointAddress: 'https://attachment.example.com/set/in/preimage',
+          oidcConfigurationEndpointAddress: 'https://oidc.example.com/set/in/preimage',
+        }
+
+        const extrinsic = await node.prepareProcess({
+          key: 'AttachmentEndpoint',
+          value: attachmentHash,
+          preimage: true,
+        })
+        await node.submitProcess(extrinsic)
+        await node.clearAllTransactions()
+
+        const extrinsic2 = await node.prepareProcess({
+          key: 'OidcConfigurationEndpoint',
+          value: oidcHash,
+          preimage: true,
+        })
+        await node.submitProcess(extrinsic2)
+        await node.clearAllTransactions()
+        const res = await getOrgDataRoute({ app, token: userToken }, USER_ALICE_TOKEN)
+        expect(res.status).to.equal(200)
+        expect(res.body).to.deep.equal(expectedResult)
+      })
+      test('return no results if preimage was set for literal', async function () {
+        const expectedResult = {
+          account: '5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY',
+          attachmentEndpointAddress: '',
+          oidcConfigurationEndpointAddress: '',
+        }
+        const extrinsic = await node.prepareProcess({
+          key: 'AttachmentEndpoint',
+          value: attachmentHash,
+        })
+        await node.submitProcess(extrinsic)
+        await node.clearAllTransactions()
+
+        const extrinsic2 = await node.prepareProcess({
+          key: 'OidcConfigurationEndpoint',
+          value: oidcHash,
+        })
+        await node.submitProcess(extrinsic2)
+        await node.clearAllTransactions()
+        const res = await getOrgDataRoute({ app, token: userToken }, USER_ALICE_TOKEN)
+
+        expect(res.status).to.equal(200)
+        expect(res.body).to.deep.equal(expectedResult)
+      })
     })
   })
 })
