@@ -43,7 +43,6 @@
     "@opentelemetry/auto-instrumentations-node": "^0.59.0",
     "@polkadot/api": "^16.1.1",
     "@tsoa/runtime": "^6.6.0",
-    "body-parser": "^2.2.0",
     "compression": "^1.8.0",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
