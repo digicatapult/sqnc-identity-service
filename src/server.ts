@@ -84,12 +84,14 @@ export default async (): Promise<Express> => {
       res.status(401).send({
         message: 'Forbidden',
       })
+      return
     }
 
     if (err instanceof HttpError) {
       res.status(err.code).send({
         message: err.message,
       })
+      return
     }
 
     if (err instanceof ValidateError) {
@@ -97,11 +99,13 @@ export default async (): Promise<Express> => {
         message: 'Validation Failed',
         details: err?.fields,
       })
+      return
     }
     if (err instanceof Error) {
       res.status(500).json({
         message: 'Internal Server Error',
       })
+      return
     }
 
     next()
