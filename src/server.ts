@@ -1,5 +1,4 @@
 import { AggregateOAuthError, OauthError } from '@digicatapult/tsoa-oauth-express'
-import bodyParser from 'body-parser'
 import compression from 'compression'
 import cors from 'cors'
 import express, { Express } from 'express'
@@ -46,8 +45,8 @@ export default async (): Promise<Express> => {
 
   const requestLogger = pinoHttp({ logger })
 
-  app.use(bodyParser.urlencoded({ extended: true }))
-  app.use(bodyParser.json())
+  app.use(express.urlencoded({ extended: true }))
+  app.use(express.json())
   app.use(cors())
   app.use(compression())
 
@@ -80,29 +79,33 @@ export default async (): Promise<Express> => {
     _req: express.Request,
     res: express.Response,
     next: express.NextFunction
-  ): express.Response | void {
+  ): void {
     if (err instanceof OauthError || err instanceof AggregateOAuthError) {
-      return res.status(401).send({
+      res.status(401).send({
         message: 'Forbidden',
       })
+      return
     }
 
     if (err instanceof HttpError) {
-      return res.status(err.code).send({
+      res.status(err.code).send({
         message: err.message,
       })
+      return
     }
 
     if (err instanceof ValidateError) {
-      return res.status(422).json({
+      res.status(422).json({
         message: 'Validation Failed',
         details: err?.fields,
       })
+      return
     }
     if (err instanceof Error) {
-      return res.status(500).json({
+      res.status(500).json({
         message: 'Internal Server Error',
       })
+      return
     }
 
     next()
