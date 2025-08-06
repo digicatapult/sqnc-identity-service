@@ -1,6 +1,6 @@
 {
   "name": "@digicatapult/sqnc-identity-service",
-  "version": "4.2.71",
+  "version": "4.2.72",
   "description": "Identity Service for SQNC",
   "type": "module",
   "main": "src/index.ts",
@@ -80,6 +80,6 @@
     "prettier-plugin-organize-imports": "^4.2.0",
     "rimraf": "^6.0.1",
     "supertest": "^7.1.4",
-    "typescript": "^5.8.3"
+    "typescript": "^5.9.2"
   }
 }
