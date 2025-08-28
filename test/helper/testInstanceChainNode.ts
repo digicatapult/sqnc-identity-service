@@ -81,13 +81,13 @@ export default class ExtendedChainNode extends ChainNode {
 
   async submitProcess(extrinsic: SubmittableExtrinsic<'promise', SubmittableResult>) {
     try {
-      this.logger.debug('Submitting  Transaction %j', extrinsic.hash.toHex())
+      this.logger.debug('Submitting  Transaction %s', extrinsic.hash.toHex())
       const unsub: () => void = await extrinsic.send((result: SubmittableResult): void => {
         this.logger.debug('result.status %s', JSON.stringify(result.status))
 
         const { dispatchError, status } = result
         if (dispatchError) {
-          this.logger.warn('dispatch error %s', dispatchError)
+          this.logger.warn('dispatch error %j', dispatchError)
           unsub()
           if (dispatchError.isModule) {
             const decoded = this.api.registry.findMetaError(dispatchError.asModule)
