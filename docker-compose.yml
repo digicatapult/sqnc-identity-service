@@ -9,7 +9,7 @@ services:
       - 9944:9944
     restart: on-failure
   postgres-data:
-    image: postgres:17-alpine
+    image: postgres:18-alpine
     ports:
       - 5432:5432
     volumes:
