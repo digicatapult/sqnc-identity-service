@@ -1,6 +1,6 @@
 {
   "name": "@digicatapult/sqnc-identity-service",
-  "version": "4.2.114",
+  "version": "4.2.115",
   "description": "Identity Service for SQNC",
   "type": "module",
   "main": "src/index.ts",
