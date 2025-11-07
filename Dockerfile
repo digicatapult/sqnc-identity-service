@@ -1,10 +1,7 @@
 # syntax=docker/dockerfile:1.19
-FROM node:lts-alpine AS builder
+FROM node:24-alpine AS builder
 
 WORKDIR /sqnc-identity-service
-
-# Install base dependencies
-RUN npm install -g npm@10.x.x
 
 COPY package*.json ./
 
@@ -13,12 +10,11 @@ COPY . .
 RUN npm run build
 
 # service
-FROM node:lts-alpine AS service
+FROM node:24-alpine AS service
 
 WORKDIR /sqnc-identity-service
 
 RUN apk add --update coreutils
-RUN npm -g install npm@10.x.x
 
 COPY package*.json ./
 COPY LICENSE ./
