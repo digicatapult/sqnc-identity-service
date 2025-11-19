@@ -1,6 +1,6 @@
 {
   "name": "@digicatapult/sqnc-identity-service",
-  "version": "4.2.120",
+  "version": "4.2.121",
   "description": "Identity Service for SQNC",
   "type": "module",
   "main": "src/index.ts",
@@ -38,7 +38,7 @@
   },
   "homepage": "https://github.com/digicatapult/sqnc-identity-service#readme",
   "dependencies": {
-    "@digicatapult/tsoa-oauth-express": "^2.0.49",
+    "@digicatapult/tsoa-oauth-express": "^2.0.50",
     "@grpc/grpc-js": "^1.14.1",
     "@opentelemetry/auto-instrumentations-node": "^0.67.0",
     "@polkadot/api": "^16.5.2",
@@ -62,7 +62,7 @@
   "devDependencies": {
     "@swc-node/register": "^1.11.1",
     "@swc/cli": "^0.7.9",
-    "@swc/core": "^1.15.1",
+    "@swc/core": "^1.15.2",
     "@types/chai": "^5.2.3",
     "@types/compression": "^1.8.1",
     "@types/cors": "^2.8.19",
