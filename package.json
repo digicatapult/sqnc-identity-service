@@ -1,6 +1,6 @@
 {
   "name": "@digicatapult/sqnc-identity-service",
-  "version": "4.2.137",
+  "version": "4.2.138",
   "description": "Identity Service for SQNC",
   "type": "module",
   "main": "src/index.ts",
@@ -57,7 +57,7 @@
     "swagger-ui-express": "^5.0.1",
     "tsoa": "^6.6.0",
     "tsyringe": "^4.10.0",
-    "zod": "^4.3.4"
+    "zod": "^4.3.5"
   },
   "devDependencies": {
     "@swc-node/register": "^1.11.1",
@@ -80,7 +80,7 @@
     "prettier": "^3.7.4",
     "prettier-plugin-organize-imports": "^4.3.0",
     "rimraf": "^6.1.2",
-    "supertest": "^7.1.4",
+    "supertest": "^7.2.2",
     "typescript": "^5.9.3"
   }
 }
