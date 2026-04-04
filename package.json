@@ -1,6 +1,6 @@
 {
   "name": "@digicatapult/sqnc-identity-service",
-  "version": "4.2.158",
+  "version": "4.2.159",
   "description": "Identity Service for SQNC",
   "type": "module",
   "main": "src/index.ts",
@@ -49,7 +49,7 @@
     "envalid": "^8.1.1",
     "express": "^5.2.1",
     "express-prom-bundle": "^8.0.0",
-    "knex": "^3.2.7",
+    "knex": "^3.2.8",
     "pg": "^8.20.0",
     "pino": "^10.3.1",
     "pino-http": "^11.0.0",
@@ -61,7 +61,7 @@
   },
   "devDependencies": {
     "@swc-node/register": "^1.11.1",
-    "@swc/cli": "^0.8.0",
+    "@swc/cli": "^0.8.1",
     "@swc/core": "^1.15.21",
     "@types/chai": "^5.2.3",
     "@types/compression": "^1.8.1",
