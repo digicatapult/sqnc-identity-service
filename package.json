@@ -1,6 +1,6 @@
 {
   "name": "@digicatapult/sqnc-identity-service",
-  "version": "4.2.162",
+  "version": "4.2.163",
   "description": "Identity Service for SQNC",
   "type": "module",
   "main": "src/index.ts",
@@ -45,7 +45,7 @@
     "@tsoa/runtime": "^6.6.0",
     "compression": "^1.8.1",
     "cors": "^2.8.6",
-    "dotenv": "^17.4.1",
+    "dotenv": "^17.4.2",
     "envalid": "^8.1.1",
     "express": "^5.2.1",
     "express-prom-bundle": "^8.0.0",
@@ -62,7 +62,7 @@
   "devDependencies": {
     "@swc-node/register": "^1.11.1",
     "@swc/cli": "^0.8.1",
-    "@swc/core": "^1.15.24",
+    "@swc/core": "^1.15.26",
     "@types/chai": "^5.2.3",
     "@types/compression": "^1.8.1",
     "@types/cors": "^2.8.19",
