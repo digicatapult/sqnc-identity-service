@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1.24
+# syntax=docker/dockerfile:1.25
 FROM node:lts-alpine AS builder
 
 WORKDIR /sqnc-identity-service
